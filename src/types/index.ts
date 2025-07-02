@@ -1,145 +1,125 @@
-import type React from "react";
+import type React from "react"
+// Position and Size interfaces
 export interface Position {
-  x: number;
-  y: number;
+  x: number
+  y: number
 }
 
 export interface Size {
-  width: number;
-  height: number;
+  width: number
+  height: number
 }
 
-export interface CropArea {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
-
-export interface BackgroundSettings {
-  scale: number;
-  rotation: number;
-  offsetX: number;
-  offsetY: number;
-  opacity: number;
-  brightness: number;
-  contrast: number;
-  saturation: number;
-  blur: number;
-}
-
-export interface ImageState {
-  src: string | null;
-  scale: number;
-  rotation: number;
-  position: Position;
-  opacity: number;
-  brightness: number;
-  contrast: number;
-  saturation: number;
-  blur: number;
-}
-
-export interface StickerItem {
-  id: string;
-  type: "emoji" | "text" | "mention" | "location";
-  content: string;
-  position: Position;
-  size: Size;
-  rotation: number;
-  opacity: number;
-  selected: boolean;
-  zIndex: number;
-}
-
-export interface EditorData {
-  image: ImageState | null;
-  stickers: StickerItem[];
-  cropArea: CropArea | null;
-  backgroundSettings: BackgroundSettings;
-}
-
-export interface ImageEditorProps {
-  width?: number;
-  height?: number;
-  onStateChange?: (state: EditorState) => void;
-  onExport?: (canvas: HTMLCanvasElement) => void;
-}
-
-// Add missing types used in components:
-
+// Sticker types
 export interface Sticker {
-  id: string;
-  type: "emoji" | "text" | "svg" | "image";
-  content: string;
-  position: Position;
-  size: Size;
-  rotation?: number;
-  opacity?: number;
+  id: string
+  type: "emoji" | "text" | "image" | "svg"
+  content: string
+  position: Position
+  size: Size
+  rotation?: number
+  zIndex?: number
 }
 
-export interface MentionData {
-  username: string;
-  displayName: string;
-  avatar?: string;
-}
-
+// Mention types
 export interface Mention {
-  id: string;
-  position: Position;
-  size: Size;
-  username: string;
-  displayName: string;
-  avatar?: string;
+  id: string
+  username: string
+  displayName: string
+  avatar?: string
+  position: Position
+  size: Size
 }
 
-export interface LocationData {
-  name: string;
-  coordinates?: {
-    lat: number;
-    lng: number;
-  };
-}
-
+// Location types
 export interface LocationTag {
-  id: string;
-  position: Position;
-  size: Size;
-  name: string;
+  id: string
+  name: string
+  address?: string
   coordinates?: {
-    lat: number;
-    lng: number;
-  };
+    lat: number
+    lng: number
+  }
+  position: Position
+  size: Size
 }
 
+// Editor data
 export interface ImageEditorData {
-  stickers: Sticker[];
-  mentions: Mention[];
-  locations: LocationTag[];
+  stickers: Sticker[]
+  mentions: Mention[]
+  locations: LocationTag[]
+}
+
+// Props interfaces
+export interface ImageEditorProps {
+  src?: string
+  alt?: string
+  width?: number
+  height?: number
+  data?: ImageEditorData
+  onDataChange?: (data: ImageEditorData) => void
+  onStickerClick?: (sticker: Sticker) => void
+  onMentionClick?: (mention: Mention) => void
+  onLocationClick?: (location: LocationTag) => void
+  editable?: boolean
+  className?: string
 }
 
 export interface DraggableItemProps {
-  children: React.ReactNode;
-  position: Position;
-  size: Size;
-  onPositionChange: (position: Position) => void;
-  onSizeChange: (size: Size) => void;
-  onRotationChange?: (rotation: number) => void;
-  rotation?: number;
-  editable?: boolean;
-  className?: string;
+  children: React.ReactNode
+  position: Position
+  size: Size
+  onPositionChange: (position: Position) => void
+  onSizeChange: (size: Size) => void
+  onRotationChange?: (rotation: number) => void
+  rotation?: number
+  editable?: boolean
+  className?: string
 }
 
-export interface ImageEditorProps {
-  src?: string;
-  alt?: string;
-  width?: number;
-  height?: number;
-  data?: ImageEditorData;
-  onDataChange?: (data: ImageEditorData) => void;
-  onStickerClick?: (sticker: Sticker) => void;
-  onMentionClick?: (mention: Mention) => void;
-  onLocationClick?: (location: LocationTag) => void;
-  editable?: boolean;
-  className?: string;
+// Legacy types for compatibility
+export interface MentionData {
+  username: string
+  displayName: string
+  avatar?: string
+}
+
+export interface LocationData {
+  name: string
+  address?: string
+  coordinates?: {
+    lat: number
+    lng: number
+  }
+}
+
+// Background and crop types
+export interface BackgroundSettings {
+  scale: number
+  rotation: number
+  offsetX: number
+  offsetY: number
+  opacity: number
+  brightness: number
+  contrast: number
+  saturation: number
+  blur: number
+}
+
+export interface CropArea {
+  x: number
+  y: number
+  width: number
+  height: number
+  scale: number
+  scaledImageWidth: number
+  scaledImageHeight: number
+}
+
+export interface EditorData {
+  image: string | null
+  stickers: Sticker[]
+  cropArea: CropArea | null
+  backgroundSettings: BackgroundSettings
 }

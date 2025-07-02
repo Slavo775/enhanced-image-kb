@@ -1,178 +1,138 @@
 "use client"
+
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card"
 import { Slider } from "./ui/slider"
 import { Button } from "./ui/button"
 import { RotateCcw, Settings } from "lucide-react"
-import type { BackgroundSettings } from "../types"
 
 interface BackgroundControlsProps {
-  settings: BackgroundSettings
-  onSettingsChange: (settings: BackgroundSettings) => void
+  backgroundState?: {
+    scale: number
+    rotation: number
+    offsetX: number
+    offsetY: number
+    opacity: number
+  }
+  onUpdate: (updates: any) => void
+  onResetToFit: () => void
+  onFillCanvas: () => void
 }
 
-export function BackgroundControls({ settings, onSettingsChange }: BackgroundControlsProps) {
+export function BackgroundControls({
+  backgroundState = {
+    scale: 1,
+    rotation: 0,
+    offsetX: 0,
+    offsetY: 0,
+    opacity: 1,
+  },
+  onUpdate,
+  onResetToFit,
+  onFillCanvas,
+}: BackgroundControlsProps) {
   const handleReset = () => {
-    onSettingsChange({
+    onUpdate({
       scale: 1,
       rotation: 0,
       offsetX: 0,
       offsetY: 0,
       opacity: 1,
-      brightness: 1,
-      contrast: 1,
-      saturation: 1,
-      blur: 0,
     })
   }
 
-  const updateSetting = (key: keyof BackgroundSettings, value: number) => {
-    onSettingsChange({ ...settings, [key]: value })
+  const updateSetting = (key: string, value: number) => {
+    onUpdate({ [key]: value })
   }
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "18px" }}>
-          <Settings size={20} />
-          🎛️ Nastavenia pozadia
+        <CardTitle className="flex items-center gap-2 text-sm">
+          <Settings className="w-4 h-4" />
+          🎛️ Background Controls
         </CardTitle>
       </CardHeader>
-      <CardContent style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+      <CardContent className="space-y-4">
         {/* Transform Controls */}
         <div>
-          <h4 style={{ fontSize: "16px", fontWeight: "600", marginBottom: "12px", color: "#374151" }}>Transformácie</h4>
-          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+          <h4 className="text-sm font-semibold mb-3 text-gray-700">Transformations</h4>
+          <div className="space-y-4">
             <div>
-              <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "500" }}>
-                Mierka: {settings.scale.toFixed(2)}x
-              </label>
+              <label className="block mb-2 text-xs font-medium">Scale: {backgroundState.scale.toFixed(2)}x</label>
               <Slider
-                value={settings.scale}
-                onChange={(value) => updateSetting("scale", value)}
+                value={[backgroundState.scale]}
+                onValueChange={(value) => updateSetting("scale", value[0])}
                 min={0.1}
                 max={3}
                 step={0.1}
+                className="w-full"
               />
             </div>
 
             <div>
-              <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "500" }}>
-                Rotácia: {settings.rotation}°
-              </label>
+              <label className="block mb-2 text-xs font-medium">Rotation: {backgroundState.rotation}°</label>
               <Slider
-                value={settings.rotation}
-                onChange={(value) => updateSetting("rotation", value)}
+                value={[backgroundState.rotation]}
+                onValueChange={(value) => updateSetting("rotation", value[0])}
                 min={-180}
                 max={180}
                 step={1}
+                className="w-full"
               />
             </div>
 
             <div>
-              <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "500" }}>
-                Posun X: {settings.offsetX}px
-              </label>
+              <label className="block mb-2 text-xs font-medium">Offset X: {backgroundState.offsetX}px</label>
               <Slider
-                value={settings.offsetX}
-                onChange={(value) => updateSetting("offsetX", value)}
+                value={[backgroundState.offsetX]}
+                onValueChange={(value) => updateSetting("offsetX", value[0])}
                 min={-200}
                 max={200}
                 step={1}
+                className="w-full"
               />
             </div>
 
             <div>
-              <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "500" }}>
-                Posun Y: {settings.offsetY}px
-              </label>
+              <label className="block mb-2 text-xs font-medium">Offset Y: {backgroundState.offsetY}px</label>
               <Slider
-                value={settings.offsetY}
-                onChange={(value) => updateSetting("offsetY", value)}
+                value={[backgroundState.offsetY]}
+                onValueChange={(value) => updateSetting("offsetY", value[0])}
                 min={-200}
                 max={200}
                 step={1}
+                className="w-full"
               />
             </div>
-          </div>
-        </div>
 
-        {/* Visual Effects */}
-        <div>
-          <h4 style={{ fontSize: "16px", fontWeight: "600", marginBottom: "12px", color: "#374151" }}>
-            Vizuálne efekty
-          </h4>
-          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
             <div>
-              <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "500" }}>
-                Priehľadnosť: {Math.round(settings.opacity * 100)}%
+              <label className="block mb-2 text-xs font-medium">
+                Opacity: {Math.round(backgroundState.opacity * 100)}%
               </label>
               <Slider
-                value={settings.opacity}
-                onChange={(value) => updateSetting("opacity", value)}
+                value={[backgroundState.opacity]}
+                onValueChange={(value) => updateSetting("opacity", value[0])}
                 min={0}
                 max={1}
                 step={0.01}
-              />
-            </div>
-
-            <div>
-              <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "500" }}>
-                Jas: {Math.round(settings.brightness * 100)}%
-              </label>
-              <Slider
-                value={settings.brightness}
-                onChange={(value) => updateSetting("brightness", value)}
-                min={0}
-                max={2}
-                step={0.01}
-              />
-            </div>
-
-            <div>
-              <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "500" }}>
-                Kontrast: {Math.round(settings.contrast * 100)}%
-              </label>
-              <Slider
-                value={settings.contrast}
-                onChange={(value) => updateSetting("contrast", value)}
-                min={0}
-                max={2}
-                step={0.01}
-              />
-            </div>
-
-            <div>
-              <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "500" }}>
-                Sýtosť: {Math.round(settings.saturation * 100)}%
-              </label>
-              <Slider
-                value={settings.saturation}
-                onChange={(value) => updateSetting("saturation", value)}
-                min={0}
-                max={2}
-                step={0.01}
-              />
-            </div>
-
-            <div>
-              <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "500" }}>
-                Rozmazanie: {settings.blur}px
-              </label>
-              <Slider
-                value={settings.blur}
-                onChange={(value) => updateSetting("blur", value)}
-                min={0}
-                max={20}
-                step={0.5}
+                className="w-full"
               />
             </div>
           </div>
         </div>
 
-        <Button variant="outline" onClick={handleReset} style={{ width: "100%" }}>
-          <RotateCcw size={16} style={{ marginRight: "8px" }} />
-          Resetovať nastavenia
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={handleReset} size="sm" className="flex-1 bg-transparent">
+            <RotateCcw className="w-3 h-3 mr-1" />
+            Reset
+          </Button>
+          <Button variant="outline" onClick={onResetToFit} size="sm" className="flex-1 bg-transparent">
+            Fit
+          </Button>
+          <Button variant="outline" onClick={onFillCanvas} size="sm" className="flex-1 bg-transparent">
+            Fill
+          </Button>
+        </div>
       </CardContent>
     </Card>
   )
