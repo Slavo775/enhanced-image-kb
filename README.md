@@ -1,30 +1,78 @@
-# Enhanced image v2
+# React Image Editor
 
-*Automatically synced with your [v0.dev](https://v0.dev) deployments*
+A powerful, lightweight React image editor component with drag-and-drop functionality, stickers, cropping, and export capabilities.
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/slvsedlak-4749s-projects/v0-enhanced-image-v2)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.dev-black?style=for-the-badge)](https://v0.dev/chat/projects/wmm9l45UQYo)
+## Features
 
-## Overview
+- 🖼️ **Image Upload** - Drag & drop or click to upload images
+- ✂️ **Crop Tool** - Select and crop image areas
+- 🎭 **Stickers** - Add emojis, text, mentions, and locations
+- 🔄 **Image Controls** - Scale, rotation, opacity, filters
+- 📱 **Mobile Support** - Touch-friendly interactions
+- 💾 **Export** - Download PNG or copy to clipboard
+- 🎨 **No Dependencies** - Pure React with inline styles
 
-This repository will stay in sync with your deployed chats on [v0.dev](https://v0.dev).
-Any changes you make to your deployed app will be automatically pushed to this repository from [v0.dev](https://v0.dev).
+## Installation
 
-## Deployment
+\`\`\`bash
+npm install react-image-editor
+# or
+pnpm install react-image-editor
+# or
+yarn add react-image-editor
+\`\`\`
 
-Your project is live at:
+## Usage
 
-**[https://vercel.com/slvsedlak-4749s-projects/v0-enhanced-image-v2](https://vercel.com/slvsedlak-4749s-projects/v0-enhanced-image-v2)**
+\`\`\`tsx
+import { ImageEditor } from 'react-image-editor'
 
-## Build your app
+function App() {
+  const handleStateChange = (state) => {
+    console.log('Editor state:', state)
+  }
 
-Continue building your app on:
+  const handleExport = (canvas) => {
+    // Handle the exported canvas
+    console.log('Exported canvas:', canvas)
+  }
 
-**[https://v0.dev/chat/projects/wmm9l45UQYo](https://v0.dev/chat/projects/wmm9l45UQYo)**
+  return (
+    <ImageEditor
+      width={600}
+      height={400}
+      onStateChange={handleStateChange}
+      onExport={handleExport}
+    />
+  )
+}
+\`\`\`
 
-## How It Works
+## Props
 
-1. Create and modify your project using [v0.dev](https://v0.dev)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| `width` | `number` | `600` | Canvas width in pixels |
+| `height` | `number` | `400` | Canvas height in pixels |
+| `onStateChange` | `(state: EditorState) => void` | - | Called when editor state changes |
+| `onExport` | `(canvas: HTMLCanvasElement) => void` | - | Called when image is exported |
+
+## Development
+
+\`\`\`bash
+# Install dependencies
+pnpm install
+
+# Start development server
+pnpm dev
+
+# Build for production
+pnpm build
+
+# Run linting
+pnpm lint
+\`\`\`
+
+## License
+
+MIT
