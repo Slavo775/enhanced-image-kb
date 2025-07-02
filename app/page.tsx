@@ -2,19 +2,12 @@
 
 import { useState, useRef, useCallback } from "react"
 import { InstagramEditor } from "../src/components/InstagramEditor"
-import { BackgroundControls } from "../src/components/BackgroundControls"
-import { ImageUpload } from "../src/components/ImageUpload"
 import { useInstagramExport } from "../hooks/useInstagramExport"
-import { Button } from "../src/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "../src/components/ui/card"
-import { Input } from "../src/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../src/components/ui/tabs"
-import { InteractiveImageViewer } from "../src/components/InteractiveImageViewer"
-import { DimensionControls } from "../src/components/DimensionControls"
 import { ImageEditor } from "../src/components/ImageEditor"
 import type { ImageEditorData, Sticker, Mention, LocationTag } from "../src/types"
 import type { InstagramEditorState } from "../hooks/useInstagramEditor"
-import { Download, Terminal } from "lucide-react"
 
 const SAMPLE_EMOJIS = ["😀", "😍", "🔥", "💯", "👍", "❤️", "😂", "🎉", "✨", "🌟"]
 
@@ -84,7 +77,7 @@ export default function Home() {
     opacity: 1,
   })
 
-  const [activeEditor, setActiveEditor] = useState<"crop" | "instagram">("crop")
+  const [activeTab, setActiveTab] = useState("editor")
 
   const createSticker = (
     type: "emoji" | "image" | "text" | "svg",
@@ -234,334 +227,51 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto py-8">
         <div className="mb-8 text-center">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Enhanced Image Editor</h1>
-          <p className="text-lg text-gray-600 mb-6">
-            Professional image editing with crop tools and Instagram-style features
-          </p>
-
-          <div className="flex justify-center gap-4">
-            <Button variant={activeEditor === "crop" ? "default" : "outline"} onClick={() => setActiveEditor("crop")}>
-              Crop Editor
-            </Button>
-            <Button
-              variant={activeEditor === "instagram" ? "default" : "outline"}
-              onClick={() => setActiveEditor("instagram")}
-            >
-              Instagram Editor
-            </Button>
-          </div>
+          <h1 className="text-4xl font-bold mb-4">Enhanced Image Editor</h1>
+          <p className="text-muted-foreground text-lg">Professional image editing with Instagram-ready formats</p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-          {/* Image Upload & Background Controls */}
-          <div className="space-y-4">
-            <Tabs defaultValue="upload" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="upload">Upload</TabsTrigger>
-                <TabsTrigger value="samples">Samples</TabsTrigger>
-              </TabsList>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="editor">Image Editor</TabsTrigger>
+            <TabsTrigger value="instagram">Instagram Editor</TabsTrigger>
+          </TabsList>
 
-              <TabsContent value="upload" className="space-y-4">
-                <ImageUpload onImageSelect={handleImageSelect} />
-              </TabsContent>
-
-              <TabsContent value="samples" className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-sm">🖼️ Sample Images</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full justify-start bg-transparent"
-                      onClick={() =>
-                        handleImageSelect({
-                          src: "https://via.placeholder.com/800x600/e2e8f0/64748b?text=Landscape+800x600",
-                          width: 800,
-                          height: 600,
-                        })
-                      }
-                    >
-                      Landscape (800×600)
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full justify-start bg-transparent"
-                      onClick={() =>
-                        handleImageSelect({
-                          src: "https://via.placeholder.com/1080x1920/e2e8f0/64748b?text=Portrait+1080x1920",
-                          width: 1080,
-                          height: 1920,
-                        })
-                      }
-                    >
-                      Portrait (1080×1920)
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full justify-start bg-transparent"
-                      onClick={() =>
-                        handleImageSelect({
-                          src: "https://via.placeholder.com/1000x1000/e2e8f0/64748b?text=Square+1000x1000",
-                          width: 1000,
-                          height: 1000,
-                        })
-                      }
-                    >
-                      Square (1000×1000)
-                    </Button>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
-
-            <BackgroundControls
-              backgroundState={backgroundState}
-              onUpdate={(updates) => {
-                setBackgroundState((prev) => ({ ...prev, ...updates }))
-                if (editorRef.current) {
-                  editorRef.current.updateBackground(updates)
-                }
-              }}
-              onResetToFit={() => editorRef.current?.resetToFit()}
-              onFillCanvas={() => editorRef.current?.fillCanvas()}
-            />
-          </div>
-
-          {/* Instagram Editor */}
-          <div className="lg:col-span-2">
+          <TabsContent value="editor" className="mt-6">
             <Card>
               <CardHeader>
-                <CardTitle>{activeEditor === "crop" ? "Image Crop Editor" : "Instagram Story Editor"}</CardTitle>
-                <div className="text-sm text-gray-600">
-                  Canvas: {dimensions.width} × {dimensions.height}px (Touch & Drag Enabled)
-                </div>
-              </CardHeader>
-              <CardContent className="flex justify-center">
-                {activeEditor === "crop" ? (
-                  <ImageEditor />
-                ) : (
-                  <InstagramEditor
-                    ref={editorRef}
-                    width={dimensions.width}
-                    height={dimensions.height}
-                    onDataChange={setEditorData}
-                    onStickerClick={handleStickerClick}
-                    onMentionClick={handleMentionClick}
-                    onLocationClick={handleLocationClick}
-                    editable={true}
-                    className="border-2 border-gray-200 rounded-lg shadow-lg"
-                  />
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Stickers Controls */}
-          <div className="space-y-4">
-            {/* Emoji Stickers */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm">🎭 Emoji</CardTitle>
+                <CardTitle>Image Editor</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-5 gap-1">
-                  {SAMPLE_EMOJIS.map((emoji, index) => (
-                    <Button
-                      key={index}
-                      variant="outline"
-                      size="sm"
-                      className="text-lg p-1 h-8 bg-transparent"
-                      onClick={() => handleAddEmoji(emoji)}
-                    >
-                      {emoji}
-                    </Button>
-                  ))}
-                </div>
+                <ImageEditor />
               </CardContent>
             </Card>
+          </TabsContent>
 
-            {/* Custom SVG Stickers */}
+          <TabsContent value="instagram" className="mt-6">
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm">🎨 Custom</CardTitle>
+                <CardTitle>Instagram Editor</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 gap-1">
-                  {CUSTOM_SVG_STICKERS.map((sticker, index) => (
-                    <Button
-                      key={index}
-                      variant="outline"
-                      size="sm"
-                      className="p-1 h-12 bg-transparent flex flex-col items-center gap-1"
-                      onClick={() => handleAddCustomSticker(sticker)}
-                    >
-                      <div className="w-6 h-6" dangerouslySetInnerHTML={{ __html: sticker.svg }} />
-                      <span className="text-xs">{sticker.name}</span>
-                    </Button>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Custom Text */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm">✏️ Text</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <Input
-                  value={customText}
-                  onChange={(e) => setCustomText(e.target.value)}
-                  placeholder="Text..."
-                  onKeyPress={(e) => e.key === "Enter" && handleAddCustomText()}
-                />
-                <Button onClick={handleAddCustomText} disabled={!customText.trim()} size="sm" className="w-full">
-                  Add Text
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Mentions */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm">👥 Mentions</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-1">
-                {SAMPLE_USERS.map((user, index) => (
-                  <Button
-                    key={index}
-                    variant="outline"
-                    size="sm"
-                    className="w-full justify-start bg-transparent text-xs"
-                    onClick={() => handleAddMention(user)}
-                  >
-                    @{user.username}
-                  </Button>
-                ))}
-              </CardContent>
-            </Card>
-
-            {/* Locations */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm">📍 Locations</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-1">
-                {SAMPLE_LOCATIONS.map((location, index) => (
-                  <Button
-                    key={index}
-                    variant="outline"
-                    size="sm"
-                    className="w-full justify-start bg-transparent text-xs"
-                    onClick={() => handleAddLocation(location)}
-                  >
-                    📍 {location.name}
-                  </Button>
-                ))}
-              </CardContent>
-            </Card>
-
-            {/* Quick Actions */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-sm">🛠️ Actions</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Button onClick={handleClearAll} variant="destructive" size="sm" className="w-full">
-                  Clear All
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Export Panel */}
-          <div className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Download className="w-5 h-5" />
-                  Export
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded">
-                  <div>
-                    <strong>Canvas:</strong> {dimensions.width}×{dimensions.height}px
-                  </div>
-                  <div>
-                    <strong>Format:</strong> PNG (retina 2x)
-                  </div>
-                  <div>
-                    <strong>Mobile:</strong> Touch & Drag Enabled
-                  </div>
-                </div>
-
-                <Button onClick={handleDownload} className="w-full" disabled={!currentImageSrc}>
-                  <Download className="w-4 h-4 mr-2" />
-                  Download PNG
-                </Button>
-
-                <Button
-                  onClick={handleExportToConsole}
-                  variant="outline"
-                  className="w-full bg-transparent"
-                  disabled={!currentImageSrc}
-                >
-                  <Terminal className="w-4 h-4 mr-2" />
-                  Export to Console
-                </Button>
-
-                <div className="text-xs text-gray-500 bg-blue-50 p-2 rounded">
-                  📱 <strong>Mobile Support:</strong>
-                  <br />• Touch to drag stickers
-                  <br />• Pinch to zoom background
-                  <br />• Tap to add elements
-                  <br />• Full responsive design
-                  <br />• Toggle lock/unlock to edit
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Interactive Image Viewer */}
-          <div className="lg:col-span-3">
-            <Card>
-              <CardHeader>
-                <CardTitle>Interactive Editor</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <InteractiveImageViewer
-                  imageSrc={currentImageSrc}
+                <InstagramEditor
+                  ref={editorRef}
                   width={dimensions.width}
                   height={dimensions.height}
+                  onDataChange={setEditorData}
+                  onStickerClick={handleStickerClick}
+                  onMentionClick={handleMentionClick}
+                  onLocationClick={handleLocationClick}
+                  editable={true}
+                  className="border-2 border-gray-200 rounded-lg shadow-lg"
                 />
               </CardContent>
             </Card>
-          </div>
-
-          {/* Dimension Controls */}
-          <div className="lg:col-span-1">
-            <Card>
-              <CardHeader>
-                <CardTitle>Dimensions</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <DimensionControls
-                  width={dimensions.width}
-                  height={dimensions.height}
-                  onDimensionChange={handleDimensionChange}
-                />
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   )
