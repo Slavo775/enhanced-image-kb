@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import { useState, useCallback } from "react"
-import { ImageUpload } from "./ImageUpload"
-import { CanvasEditor } from "./CanvasEditor"
-import { ControlPanel } from "./ControlPanel"
-import { ImagePreview } from "./ImagePreview"
+import { useState, useCallback } from "react";
+import { ImageUpload } from "./ImageUpload";
+import { CanvasEditor } from "./CanvasEditor";
+import { ControlPanel } from "./ControlPanel";
+import { ImagePreview } from "./ImagePreview";
 import type {
   EditorState,
   ImageData,
@@ -13,9 +13,14 @@ import type {
   MentionItem,
   LocationItem,
   ImageEditorProps,
-} from "../types"
+} from "../types";
 
-export function ImageEditor({ width = 800, height = 600, onStateChange, onExport }: ImageEditorProps) {
+export function ImageEditor({
+  width = 800,
+  height = 600,
+  onStateChange,
+  onExport,
+}: ImageEditorProps) {
   const [state, setState] = useState<EditorState>({
     image: null,
     cropArea: null,
@@ -24,60 +29,62 @@ export function ImageEditor({ width = 800, height = 600, onStateChange, onExport
     mentions: [],
     locations: [],
     selectedItem: null,
-  })
-  const [previewCanvas, setPreviewCanvas] = useState<HTMLCanvasElement | null>(null)
+  });
+  const [previewCanvas, setPreviewCanvas] = useState<HTMLCanvasElement | null>(
+    null
+  );
 
   const updateState = useCallback(
     (updates: Partial<EditorState>) => {
       setState((prev) => {
-        const newState = { ...prev, ...updates }
-        onStateChange?.(newState)
-        return newState
-      })
+        const newState = { ...prev, ...updates };
+        onStateChange?.(newState);
+        return newState;
+      });
     },
-    [onStateChange],
-  )
+    [onStateChange]
+  );
 
   const handleImageSelect = (imageData: ImageData) => {
-    updateState({ image: imageData })
-  }
+    updateState({ image: imageData });
+  };
 
   const handleCropPresetChange = (preset: CropPreset) => {
-    updateState({ cropPreset: preset })
-  }
+    updateState({ cropPreset: preset });
+  };
 
   const handleImageUpdate = (imageData: ImageData) => {
-    updateState({ image: imageData })
-  }
+    updateState({ image: imageData });
+  };
 
   const handleAddSticker = (sticker: StickerItem) => {
-    updateState({ stickers: [...state.stickers, sticker] })
-  }
+    updateState({ stickers: [...state.stickers, sticker] });
+  };
 
   const handleAddMention = (mention: MentionItem) => {
-    updateState({ mentions: [...state.mentions, mention] })
-  }
+    updateState({ mentions: [...state.mentions, mention] });
+  };
 
   const handleAddLocation = (location: LocationItem) => {
-    updateState({ locations: [...state.locations, location] })
-  }
+    updateState({ locations: [...state.locations, location] });
+  };
 
   const handlePreviewUpdate = (canvas: HTMLCanvasElement) => {
-    setPreviewCanvas(canvas)
-  }
+    setPreviewCanvas(canvas);
+  };
 
   const handleExport = () => {
     if (previewCanvas) {
       // Create final export canvas
-      const exportCanvas = document.createElement("canvas")
-      const exportCtx = exportCanvas.getContext("2d")
+      const exportCanvas = document.createElement("canvas");
+      const exportCtx = exportCanvas.getContext("2d");
 
       if (state.cropPreset && exportCtx) {
-        exportCanvas.width = state.cropPreset.width
-        exportCanvas.height = state.cropPreset.height
+        exportCanvas.width = state.cropPreset.width;
+        exportCanvas.height = state.cropPreset.height;
 
-        const cropX = (width - state.cropPreset.width) / 2
-        const cropY = (height - state.cropPreset.height) / 2
+        const cropX = (width - state.cropPreset.width) / 2;
+        const cropY = (height - state.cropPreset.height) / 2;
 
         exportCtx.drawImage(
           previewCanvas,
@@ -88,30 +95,30 @@ export function ImageEditor({ width = 800, height = 600, onStateChange, onExport
           0,
           0,
           state.cropPreset.width,
-          state.cropPreset.height,
-        )
+          state.cropPreset.height
+        );
       } else {
-        exportCanvas.width = width
-        exportCanvas.height = height
-        exportCtx?.drawImage(previewCanvas, 0, 0)
+        exportCanvas.width = width;
+        exportCanvas.height = height;
+        exportCtx?.drawImage(previewCanvas, 0, 0);
       }
 
-      onExport?.(exportCanvas)
+      onExport?.(exportCanvas);
 
       // Download image
-      const link = document.createElement("a")
-      link.download = `edited-image-${Date.now()}.png`
-      link.href = exportCanvas.toDataURL()
-      link.click()
+      const link = document.createElement("a");
+      link.download = `edited-image-${Date.now()}.png`;
+      link.href = exportCanvas.toDataURL();
+      link.click();
     }
-  }
+  };
 
   if (!state.image) {
     return (
       <div className="max-w-md mx-auto">
         <ImageUpload onImageSelect={handleImageSelect} />
       </div>
-    )
+    );
   }
 
   return (
@@ -149,5 +156,5 @@ export function ImageEditor({ width = 800, height = 600, onStateChange, onExport
         />
       </div>
     </div>
-  )
+  );
 }
