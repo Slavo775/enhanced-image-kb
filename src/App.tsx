@@ -13,6 +13,7 @@ import { Badge } from "./components/ui/badge"
 import {
   Upload,
   Download,
+  Crop,
   Smile,
   AtSign,
   MapPin,
@@ -25,21 +26,14 @@ import {
   Smartphone,
   Monitor,
   X,
-  Move,
 } from "lucide-react"
 import "./styles/globals.css"
-
-interface CropArea {
-  x: number
-  y: number
-  width: number
-  height: number
-}
 
 interface ImagePosition {
   x: number
   y: number
-  scale: number
+  width: number
+  height: number
 }
 
 interface StickerItem {
@@ -139,7 +133,8 @@ function App() {
   const [imagePosition, setImagePosition] = useState<ImagePosition>({
     x: 0,
     y: 0,
-    scale: 1,
+    width: 400,
+    height: 400,
   })
   const [canvasSize, setCanvasSize] = useState({ width: 1080, height: 1080 })
   const [selectedPreset, setSelectedPreset] = useState<string>("Instagram Post")
@@ -153,7 +148,6 @@ function App() {
 
   // Drag & Resize states
   const [isDragging, setIsDragging] = useState(false)
-  const [isDraggingImage, setIsDraggingImage] = useState(false)
   const [isResizing, setIsResizing] = useState(false)
   const [resizeHandle, setResizeHandle] = useState<string>("")
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
@@ -168,11 +162,10 @@ function App() {
   // === SEKCIA 3: PREVIEW A EXPORT ===
   const [previewImage, setPreviewImage] = useState<string | null>(null)
   const [isExporting, setIsExporting] = useState(false)
-  const [needsPreviewUpdate, setNeedsPreviewUpdate] = useState(false)
 
   // Refs
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const previewCanvasRef = useRef<HTMLCanvasElement>(null)
+  const cropCanvasRef = useRef<HTMLCanvasElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Helper functions
@@ -197,34 +190,31 @@ function App() {
   }
 
   // === SEKCIA 1: NAHRANIE OBRAZKA ===
-  const handleImageUpload = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      const file = event.target.files?.[0]
-      if (file && file.type.startsWith("image/")) {
-        setImageFile(file)
-        const reader = new FileReader()
-        reader.onload = (e) => {
-          const img = new Image()
-          img.onload = () => {
-            setOriginalImage(e.target?.result as string)
-            setImageDimensions({ width: img.width, height: img.height })
+  const handleImageUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file && file.type.startsWith("image/")) {
+      setImageFile(file)
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        const img = new Image()
+        img.onload = () => {
+          setOriginalImage(e.target?.result as string)
+          setImageDimensions({ width: img.width, height: img.height })
 
-            // Nastavenie defaultnej pozície obrazka na stred
-            const scale = Math.min(canvasSize.width / img.width, canvasSize.height / img.height)
-            setImagePosition({
-              x: (canvasSize.width - img.width * scale) / 2,
-              y: (canvasSize.height - img.height * scale) / 2,
-              scale: scale,
-            })
-            setNeedsPreviewUpdate(true)
-          }
-          img.src = e.target?.result as string
+          // Nastavenie defaultného crop area na stred obrazka
+          const defaultSize = Math.min(img.width, img.height, 400)
+          setImagePosition({
+            x: (img.width - defaultSize) / 2,
+            y: (img.height - defaultSize) / 2,
+            width: defaultSize,
+            height: defaultSize,
+          })
         }
-        reader.readAsDataURL(file)
+        img.src = e.target?.result as string
       }
-    },
-    [canvasSize],
-  )
+      reader.readAsDataURL(file)
+    }
+  }, [])
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault()
@@ -251,8 +241,14 @@ function App() {
     if (preset) {
       setSelectedPreset(presetName)
       setCanvasSize({ width: preset.width, height: preset.height })
-      setNeedsPreviewUpdate(true)
     }
+  }, [])
+
+  const handleImagePositionChange = useCallback((property: keyof ImagePosition, value: number) => {
+    setImagePosition((prev) => ({
+      ...prev,
+      [property]: Math.max(0, value),
+    }))
   }, [])
 
   const addSticker = useCallback(
@@ -269,38 +265,19 @@ function App() {
         ...extra,
       }
       setStickers((prev) => [...prev, newSticker])
-      setNeedsPreviewUpdate(true)
     },
     [canvasSize],
   )
 
   const updateSticker = useCallback((id: string, updates: Partial<StickerItem>) => {
     setStickers((prev) => prev.map((sticker) => (sticker.id === id ? { ...sticker, ...updates } : sticker)))
-    // Neaktualizujeme preview pri každom pohybe - iba pri ukončení
   }, [])
 
   const removeSticker = useCallback((id: string) => {
     setStickers((prev) => prev.filter((sticker) => sticker.id !== id))
     setSelectedSticker(null)
     setShowTooltip(null)
-    setNeedsPreviewUpdate(true)
   }, [])
-
-  // Image drag handlers
-  const handleImageMouseDown = useCallback(
-    (event: React.MouseEvent) => {
-      if (selectedSticker) return // Ak je vybraný sticker, neposúvame obrázok
-
-      event.preventDefault()
-      setIsDraggingImage(true)
-      const coords = getCanvasCoordinates(event.clientX, event.clientY)
-      setDragOffset({
-        x: coords.x - imagePosition.x,
-        y: coords.y - imagePosition.y,
-      })
-    },
-    [selectedSticker, imagePosition],
-  )
 
   // Touch handlers
   const handleTouchStart = useCallback((sticker: StickerItem, event: React.TouchEvent) => {
@@ -373,7 +350,6 @@ function App() {
     setIsDragging(false)
     setInitialDistance(0)
     setInitialStickerSize({ width: 0, height: 0 })
-    setNeedsPreviewUpdate(true) // Aktualizujeme preview po ukončení touch
   }, [])
 
   // Mouse handlers
@@ -415,21 +391,9 @@ function App() {
 
   const handleMouseMove = useCallback(
     (event: React.MouseEvent) => {
-      const coords = getCanvasCoordinates(event.clientX, event.clientY)
-
-      if (isDraggingImage) {
-        // Posúvanie obrázka
-        const newX = coords.x - dragOffset.x
-        const newY = coords.y - dragOffset.y
-        setImagePosition((prev) => ({
-          ...prev,
-          x: newX,
-          y: newY,
-        }))
-        return
-      }
-
       if (!selectedSticker) return
+
+      const coords = getCanvasCoordinates(event.clientX, event.clientY)
 
       if (isResizing && resizeHandle) {
         const deltaX = coords.x - dragOffset.x
@@ -478,7 +442,6 @@ function App() {
     },
     [
       isDragging,
-      isDraggingImage,
       isResizing,
       selectedSticker,
       resizeHandle,
@@ -492,25 +455,15 @@ function App() {
 
   const handleMouseUp = useCallback(() => {
     setIsDragging(false)
-    setIsDraggingImage(false)
     setIsResizing(false)
     setResizeHandle("")
-    setNeedsPreviewUpdate(true) // Aktualizujeme preview po ukončení drag/resize
-  }, [])
-
-  const handleCanvasClick = useCallback((event: React.MouseEvent) => {
-    // Klik na prázdne miesto - zruší výber stickera
-    if (event.target === event.currentTarget) {
-      setSelectedSticker(null)
-      setShowTooltip(null)
-    }
   }, [])
 
   // === SEKCIA 3: PREVIEW A EXPORT ===
   const generatePreview = useCallback(async () => {
-    if (!originalImage || !previewCanvasRef.current) return
+    if (!originalImage || !canvasRef.current) return
 
-    const canvas = previewCanvasRef.current
+    const canvas = canvasRef.current
     const ctx = canvas.getContext("2d")
     if (!ctx) return
 
@@ -521,18 +474,20 @@ function App() {
     ctx.fillStyle = "#ffffff"
     ctx.fillRect(0, 0, canvas.width, canvas.height)
 
-    // Nakreslenie obrázka
+    // Nakreslenie orezaného obrazka
     const img = new Image()
     img.onload = () => {
-      ctx.save()
       ctx.drawImage(
         img,
         imagePosition.x,
         imagePosition.y,
-        img.width * imagePosition.scale,
-        img.height * imagePosition.scale,
+        imagePosition.width,
+        imagePosition.height,
+        0,
+        0,
+        canvas.width,
+        canvas.height,
       )
-      ctx.restore()
 
       // Nakreslenie stickerov
       stickers.forEach((sticker) => {
@@ -541,7 +496,7 @@ function App() {
         ctx.rotate((sticker.rotation * Math.PI) / 180)
 
         if (sticker.type === "sticker" && sticker.emoji) {
-          ctx.font = `${sticker.height * 0.8}px Arial`
+          ctx.font = `${sticker.height}px Arial`
           ctx.textAlign = "center"
           ctx.textBaseline = "middle"
           ctx.fillText(sticker.emoji, 0, 0)
@@ -568,7 +523,6 @@ function App() {
 
       // Vytvorenie preview
       setPreviewImage(canvas.toDataURL("image/png"))
-      setNeedsPreviewUpdate(false)
     }
     img.src = originalImage
   }, [originalImage, canvasSize, imagePosition, stickers])
@@ -589,23 +543,12 @@ function App() {
     }
   }, [previewImage])
 
-  // Automatické generovanie preview iba keď je potrebné
-  useEffect(() => {
-    if (originalImage && needsPreviewUpdate) {
-      const timeoutId = setTimeout(() => {
-        generatePreview()
-      }, 100) // Debounce pre lepšiu performance
-
-      return () => clearTimeout(timeoutId)
-    }
-  }, [generatePreview, originalImage, needsPreviewUpdate])
-
-  // Aktualizácia preview pri zmene imagePosition
+  // Automatické generovanie preview pri zmene
   useEffect(() => {
     if (originalImage) {
-      setNeedsPreviewUpdate(true)
+      generatePreview()
     }
-  }, [imagePosition, originalImage])
+  }, [generatePreview, originalImage])
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -654,13 +597,13 @@ function App() {
               </CardContent>
             </Card>
 
-            {/* Image Position Controls */}
+            {/* Crop Controls */}
             {originalImage && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Move className="w-5 h-5" />
-                    Pozícia obrázka
+                    <Crop className="w-5 h-5" />
+                    Nastavenia crop
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -693,39 +636,43 @@ function App() {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label>X pozícia: {Math.round(imagePosition.x)}</Label>
+                      <Label>X pozícia: {imagePosition.x}</Label>
                       <Slider
                         value={[imagePosition.x]}
-                        onValueChange={([value]) => setImagePosition((prev) => ({ ...prev, x: value }))}
-                        min={-imageDimensions.width}
-                        max={canvasSize.width}
+                        onValueChange={([value]) => handleImagePositionChange("x", value)}
+                        max={imageDimensions.width - imagePosition.width}
                         step={1}
                       />
                     </div>
                     <div>
-                      <Label>Y pozícia: {Math.round(imagePosition.y)}</Label>
+                      <Label>Y pozícia: {imagePosition.y}</Label>
                       <Slider
                         value={[imagePosition.y]}
-                        onValueChange={([value]) => setImagePosition((prev) => ({ ...prev, y: value }))}
-                        min={-imageDimensions.height}
-                        max={canvasSize.height}
+                        onValueChange={([value]) => handleImagePositionChange("y", value)}
+                        max={imageDimensions.height - imagePosition.height}
                         step={1}
                       />
                     </div>
-                    <div className="col-span-2">
-                      <Label>Zoom: {(imagePosition.scale * 100).toFixed(0)}%</Label>
+                    <div>
+                      <Label>Šírka: {imagePosition.width}</Label>
                       <Slider
-                        value={[imagePosition.scale]}
-                        onValueChange={([value]) => setImagePosition((prev) => ({ ...prev, scale: value }))}
-                        min={0.1}
-                        max={3}
-                        step={0.01}
+                        value={[imagePosition.width]}
+                        onValueChange={([value]) => handleImagePositionChange("width", value)}
+                        min={50}
+                        max={imageDimensions.width}
+                        step={1}
                       />
                     </div>
-                  </div>
-
-                  <div className="text-xs text-gray-500">
-                    💡 Tip: Kliknite a ťahajte obrázok priamo v editore pre rýchle posúvanie
+                    <div>
+                      <Label>Výška: {imagePosition.height}</Label>
+                      <Slider
+                        value={[imagePosition.height]}
+                        onValueChange={([value]) => handleImagePositionChange("height", value)}
+                        min={50}
+                        max={imageDimensions.height}
+                        step={1}
+                      />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -857,26 +804,13 @@ function App() {
                     onMouseUp={handleMouseUp}
                     onTouchMove={handleTouchMove}
                     onTouchEnd={handleTouchEnd}
-                    onClick={handleCanvasClick}
                   >
-                    {/* Background Image */}
-                    <div
-                      className="absolute inset-0 cursor-move"
-                      onMouseDown={handleImageMouseDown}
-                      style={{
-                        backgroundImage: `url(${originalImage})`,
-                        backgroundSize: `${imageDimensions.width * imagePosition.scale}px ${imageDimensions.height * imagePosition.scale}px`,
-                        backgroundPosition: `${imagePosition.x}px ${imagePosition.y}px`,
-                        backgroundRepeat: "no-repeat",
-                      }}
-                    />
-
-                    {/* Hidden canvas for preview generation */}
                     <canvas
-                      ref={previewCanvasRef}
+                      ref={canvasRef}
                       width={canvasSize.width}
                       height={canvasSize.height}
-                      className="hidden"
+                      className="w-full h-full object-contain"
+                      style={{ maxHeight: "400px" }}
                     />
 
                     {/* Stickers Overlay */}
@@ -902,9 +836,7 @@ function App() {
                       >
                         {/* Sticker Content */}
                         <div className="w-full h-full flex items-center justify-center pointer-events-none">
-                          {sticker.type === "sticker" && (
-                            <div style={{ fontSize: `${sticker.height * 0.8}px` }}>{sticker.emoji}</div>
-                          )}
+                          {sticker.type === "sticker" && <div className="text-2xl">{sticker.emoji}</div>}
                           {sticker.type === "mention" && (
                             <div
                               className="w-full h-full bg-blue-500 text-white rounded px-2 py-1 flex items-center justify-center"
@@ -977,10 +909,7 @@ function App() {
                                 <Label className="text-xs">Šírka: {Math.round(sticker.width)}</Label>
                                 <Slider
                                   value={[sticker.width]}
-                                  onValueChange={([value]) => {
-                                    updateSticker(sticker.id, { width: value })
-                                    setNeedsPreviewUpdate(true)
-                                  }}
+                                  onValueChange={([value]) => updateSticker(sticker.id, { width: value })}
                                   min={20}
                                   max={300}
                                   step={1}
@@ -990,10 +919,7 @@ function App() {
                                 <Label className="text-xs">Výška: {Math.round(sticker.height)}</Label>
                                 <Slider
                                   value={[sticker.height]}
-                                  onValueChange={([value]) => {
-                                    updateSticker(sticker.id, { height: value })
-                                    setNeedsPreviewUpdate(true)
-                                  }}
+                                  onValueChange={([value]) => updateSticker(sticker.id, { height: value })}
                                   min={20}
                                   max={300}
                                   step={1}
@@ -1004,10 +930,7 @@ function App() {
                               <Label className="text-xs">Rotácia: {sticker.rotation}°</Label>
                               <Slider
                                 value={[sticker.rotation]}
-                                onValueChange={([value]) => {
-                                  updateSticker(sticker.id, { rotation: value })
-                                  setNeedsPreviewUpdate(true)
-                                }}
+                                onValueChange={([value]) => updateSticker(sticker.id, { rotation: value })}
                                 min={-180}
                                 max={180}
                                 step={1}
