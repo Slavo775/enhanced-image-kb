@@ -1,82 +1,136 @@
 "use client"
 
-import React from "react"
-import { useState, useCallback, useRef } from "react"
-import type { Size, Position } from "../types"
+import type React from "react"
 
-export const useResizable = (initialSize: Size, onSizeChange: (size: Size) => void, editable = true) => {
+import { useState, useRef, useCallback, useEffect } from "react"
+import type { Size } from "../types"
+
+interface UseResizableProps {
+  initialSize: Size
+  onSizeChange: (size: Size) => void
+  minSize?: Size
+  maxSize?: Size
+}
+
+export function useResizable({
+  initialSize,
+  onSizeChange,
+  minSize = { width: 20, height: 20 },
+  maxSize,
+}: UseResizableProps) {
+  const [size, setSize] = useState<Size>(initialSize)
   const [isResizing, setIsResizing] = useState(false)
-  const [resizeHandle, setResizeHandle] = useState<string>("")
-  const startPos = useRef<Position>({ x: 0, y: 0 })
-  const startSize = useRef<Size>({ width: 0, height: 0 })
+  const resizeRef = useRef<HTMLDivElement>(null)
+  const resizeStartRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 })
+  const sizeStartRef = useRef<Size>(initialSize)
 
   const handleResizeStart = useCallback(
-    (e: React.MouseEvent, handle: string) => {
-      if (!editable) return
-
+    (e: React.MouseEvent) => {
       e.preventDefault()
       e.stopPropagation()
 
       setIsResizing(true)
-      setResizeHandle(handle)
-      startPos.current = { x: e.clientX, y: e.clientY }
-      startSize.current = { ...initialSize }
+      resizeStartRef.current = { x: e.clientX, y: e.clientY }
+      sizeStartRef.current = size
     },
-    [editable, initialSize],
+    [size],
+  )
+
+  const handleTouchResizeStart = useCallback(
+    (e: React.TouchEvent) => {
+      e.preventDefault()
+      e.stopPropagation()
+
+      const touch = e.touches[0]
+      setIsResizing(true)
+      resizeStartRef.current = { x: touch.clientX, y: touch.clientY }
+      sizeStartRef.current = size
+    },
+    [size],
   )
 
   const handleResizeMove = useCallback(
     (e: MouseEvent) => {
-      if (!isResizing || !editable) return
+      if (!isResizing) return
 
-      const deltaX = e.clientX - startPos.current.x
-      const deltaY = e.clientY - startPos.current.y
+      const deltaX = e.clientX - resizeStartRef.current.x
+      const deltaY = e.clientY - resizeStartRef.current.y
 
-      const newSize = { ...startSize.current }
+      let newWidth = sizeStartRef.current.width + deltaX
+      let newHeight = sizeStartRef.current.height + deltaY
 
-      switch (resizeHandle) {
-        case "se": // Southeast
-          newSize.width = Math.max(20, startSize.current.width + deltaX)
-          newSize.height = Math.max(20, startSize.current.height + deltaY)
-          break
-        case "sw": // Southwest
-          newSize.width = Math.max(20, startSize.current.width - deltaX)
-          newSize.height = Math.max(20, startSize.current.height + deltaY)
-          break
-        case "ne": // Northeast
-          newSize.width = Math.max(20, startSize.current.width + deltaX)
-          newSize.height = Math.max(20, startSize.current.height - deltaY)
-          break
-        case "nw": // Northwest
-          newSize.width = Math.max(20, startSize.current.width - deltaX)
-          newSize.height = Math.max(20, startSize.current.height - deltaY)
-          break
+      // Apply constraints
+      newWidth = Math.max(minSize.width, newWidth)
+      newHeight = Math.max(minSize.height, newHeight)
+
+      if (maxSize) {
+        newWidth = Math.min(maxSize.width, newWidth)
+        newHeight = Math.min(maxSize.height, newHeight)
       }
 
+      const newSize = { width: newWidth, height: newHeight }
+      setSize(newSize)
       onSizeChange(newSize)
     },
-    [isResizing, resizeHandle, onSizeChange, editable],
+    [isResizing, onSizeChange, minSize, maxSize],
+  )
+
+  const handleTouchResizeMove = useCallback(
+    (e: TouchEvent) => {
+      if (!isResizing) return
+
+      const touch = e.touches[0]
+      const deltaX = touch.clientX - resizeStartRef.current.x
+      const deltaY = touch.clientY - resizeStartRef.current.y
+
+      let newWidth = sizeStartRef.current.width + deltaX
+      let newHeight = sizeStartRef.current.height + deltaY
+
+      // Apply constraints
+      newWidth = Math.max(minSize.width, newWidth)
+      newHeight = Math.max(minSize.height, newHeight)
+
+      if (maxSize) {
+        newWidth = Math.min(maxSize.width, newWidth)
+        newHeight = Math.min(maxSize.height, newHeight)
+      }
+
+      const newSize = { width: newWidth, height: newHeight }
+      setSize(newSize)
+      onSizeChange(newSize)
+    },
+    [isResizing, onSizeChange, minSize, maxSize],
   )
 
   const handleResizeEnd = useCallback(() => {
     setIsResizing(false)
-    setResizeHandle("")
   }, [])
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (isResizing) {
       document.addEventListener("mousemove", handleResizeMove)
       document.addEventListener("mouseup", handleResizeEnd)
+      document.addEventListener("touchmove", handleTouchResizeMove)
+      document.addEventListener("touchend", handleResizeEnd)
 
       return () => {
         document.removeEventListener("mousemove", handleResizeMove)
         document.removeEventListener("mouseup", handleResizeEnd)
+        document.removeEventListener("touchmove", handleTouchResizeMove)
+        document.removeEventListener("touchend", handleResizeEnd)
       }
     }
-  }, [isResizing, handleResizeMove, handleResizeEnd])
+  }, [isResizing, handleResizeMove, handleResizeEnd, handleTouchResizeMove])
+
+  useEffect(() => {
+    setSize(initialSize)
+  }, [initialSize])
 
   return {
+    size,
     isResizing,
+    resizeRef,
     handleResizeStart,
+    handleTouchResizeStart,
   }
 }

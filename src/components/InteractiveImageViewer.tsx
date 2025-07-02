@@ -6,7 +6,7 @@ import { Plus, Type, AtSign, MapPin, Download, Eye, Copy, ChevronDown, ChevronUp
 import { ImageUpload } from "./ImageUpload"
 import { DimensionControls } from "./DimensionControls"
 import { BackgroundControls } from "./BackgroundControls"
-import { useDraggable } from "../hooks/useDraggable"
+import { DraggableItem } from "./DraggableItem"
 import { useResizable } from "../hooks/useResizable"
 import { useImageExport } from "../hooks/useImageExport"
 import { generateId } from "../lib/utils"
@@ -89,48 +89,6 @@ const emojis = [
   "😓",
   "🤗",
 ]
-
-const DraggableItem: React.FC<{
-  id: string
-  position: Position
-  onPositionChange: (id: string, position: Position) => void
-  onSelect: (id: string) => void
-  isSelected: boolean
-  containerRef: React.RefObject<HTMLDivElement>
-  children: React.ReactNode
-}> = ({ id, position, onPositionChange, onSelect, isSelected, containerRef, children }) => {
-  const {
-    position: dragPosition,
-    isDragging,
-    dragRef,
-    handleMouseDown,
-    handleTouchStart,
-  } = useDraggable({
-    initialPosition: position,
-    onPositionChange: (newPosition) => onPositionChange(id, newPosition),
-    containerRef,
-  })
-
-  return (
-    <div
-      ref={dragRef}
-      style={{
-        position: "absolute",
-        left: dragPosition.x,
-        top: dragPosition.y,
-        cursor: isDragging ? "grabbing" : "grab",
-        border: isSelected ? "2px solid #3b82f6" : "2px solid transparent",
-        borderRadius: "4px",
-        userSelect: "none",
-      }}
-      onMouseDown={handleMouseDown}
-      onTouchStart={handleTouchStart}
-      onClick={() => onSelect(id)}
-    >
-      {children}
-    </div>
-  )
-}
 
 const ResizableItem: React.FC<{
   id: string

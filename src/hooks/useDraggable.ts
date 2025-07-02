@@ -1,138 +1,116 @@
 "use client"
 
 import type React from "react"
-import { useState, useCallback, useRef, useEffect } from "react"
+
+import { useState, useRef, useCallback, useEffect } from "react"
 import type { Position } from "../types"
 
-export interface DraggableState {
-  isDragging: boolean
-  dragOffset: Position
-  position: Position
+interface UseDraggableProps {
+  initialPosition: Position
+  onPositionChange: (position: Position) => void
+  containerRef: React.RefObject<HTMLDivElement>
 }
 
-export const useDraggable = (
-  initialPosition: Position,
-  onPositionChange: (position: Position) => void,
-  editable = true,
-) => {
-  const [state, setState] = useState<DraggableState>({
-    isDragging: false,
-    dragOffset: { x: 0, y: 0 },
-    position: initialPosition,
-  })
-
+export function useDraggable({ initialPosition, onPositionChange, containerRef }: UseDraggableProps) {
+  const [position, setPosition] = useState<Position>(initialPosition)
+  const [isDragging, setIsDragging] = useState(false)
   const dragRef = useRef<HTMLDivElement>(null)
+  const dragStartRef = useRef<Position>({ x: 0, y: 0 })
+  const elementStartRef = useRef<Position>(initialPosition)
 
-  const handleStart = useCallback(
-    (clientX: number, clientY: number) => {
-      if (!editable || !dragRef.current) return
-
-      const rect = dragRef.current.getBoundingClientRect()
-      const offsetX = clientX - rect.left
-      const offsetY = clientY - rect.top
-
-      setState((prev) => ({
-        ...prev,
-        isDragging: true,
-        dragOffset: { x: offsetX, y: offsetY },
-      }))
-    },
-    [editable],
-  )
-
-  const handleMove = useCallback(
-    (clientX: number, clientY: number) => {
-      if (!state.isDragging || !editable || !dragRef.current) return
-
-      const parentRect = dragRef.current.parentElement?.getBoundingClientRect()
-      if (!parentRect) return
-
-      const newX = clientX - parentRect.left - state.dragOffset.x
-      const newY = clientY - parentRect.top - state.dragOffset.y
-
-      const newPosition = {
-        x: newX,
-        y: newY,
-      }
-
-      // Constrain to container bounds
-      const maxX = parentRect.width - (dragRef.current.offsetWidth || 0)
-      const maxY = parentRect.height - (dragRef.current.offsetHeight || 0)
-
-      newPosition.x = Math.max(0, Math.min(maxX, newPosition.x))
-      newPosition.y = Math.max(0, Math.min(maxY, newPosition.y))
-
-      onPositionChange(newPosition)
-      setState((prev) => ({
-        ...prev,
-        position: newPosition,
-      }))
-    },
-    [state.isDragging, state.dragOffset, onPositionChange, editable],
-  )
-
-  const handleEnd = useCallback(() => {
-    setState((prev) => ({
-      ...prev,
-      isDragging: false,
-    }))
-  }, [])
-
-  // Mouse events
   const handleMouseDown = useCallback(
     (e: React.MouseEvent) => {
       e.preventDefault()
       e.stopPropagation()
-      handleStart(e.clientX, e.clientY)
+
+      setIsDragging(true)
+      dragStartRef.current = { x: e.clientX, y: e.clientY }
+      elementStartRef.current = position
     },
-    [handleStart],
+    [position],
   )
 
-  const handleMouseMove = useCallback(
-    (e: React.MouseEvent) => {
-      handleMove(e.clientX, e.clientY)
-    },
-    [handleMove],
-  )
-
-  const handleMouseUp = useCallback(() => {
-    handleEnd()
-  }, [handleEnd])
-
-  // Touch events for mobile
   const handleTouchStart = useCallback(
     (e: React.TouchEvent) => {
       e.preventDefault()
       e.stopPropagation()
+
       const touch = e.touches[0]
-      handleStart(touch.clientX, touch.clientY)
+      setIsDragging(true)
+      dragStartRef.current = { x: touch.clientX, y: touch.clientY }
+      elementStartRef.current = position
     },
-    [handleStart],
+    [position],
+  )
+
+  const handleMouseMove = useCallback(
+    (e: MouseEvent) => {
+      if (!isDragging) return
+
+      const deltaX = e.clientX - dragStartRef.current.x
+      const deltaY = e.clientY - dragStartRef.current.y
+
+      const newPosition = {
+        x: Math.max(0, elementStartRef.current.x + deltaX),
+        y: Math.max(0, elementStartRef.current.y + deltaY),
+      }
+
+      // Constrain to container bounds
+      if (containerRef.current && dragRef.current) {
+        const containerRect = containerRef.current.getBoundingClientRect()
+        const elementRect = dragRef.current.getBoundingClientRect()
+
+        newPosition.x = Math.min(newPosition.x, containerRect.width - elementRect.width)
+        newPosition.y = Math.min(newPosition.y, containerRect.height - elementRect.height)
+      }
+
+      setPosition(newPosition)
+      onPositionChange(newPosition)
+    },
+    [isDragging, onPositionChange, containerRef],
   )
 
   const handleTouchMove = useCallback(
-    (e: React.TouchEvent) => {
-      e.preventDefault()
+    (e: TouchEvent) => {
+      if (!isDragging) return
+
       const touch = e.touches[0]
-      handleMove(touch.clientX, touch.clientY)
+      const deltaX = touch.clientX - dragStartRef.current.x
+      const deltaY = touch.clientY - dragStartRef.current.y
+
+      const newPosition = {
+        x: Math.max(0, elementStartRef.current.x + deltaX),
+        y: Math.max(0, elementStartRef.current.y + deltaY),
+      }
+
+      // Constrain to container bounds
+      if (containerRef.current && dragRef.current) {
+        const containerRect = containerRef.current.getBoundingClientRect()
+        const elementRect = dragRef.current.getBoundingClientRect()
+
+        newPosition.x = Math.min(newPosition.x, containerRect.width - elementRect.width)
+        newPosition.y = Math.min(newPosition.y, containerRect.height - elementRect.height)
+      }
+
+      setPosition(newPosition)
+      onPositionChange(newPosition)
     },
-    [handleMove],
+    [isDragging, onPositionChange, containerRef],
   )
 
-  const handleTouchEnd = useCallback(
-    (e: React.TouchEvent) => {
-      e.preventDefault()
-      handleEnd()
-    },
-    [handleEnd],
-  )
+  const handleMouseUp = useCallback(() => {
+    setIsDragging(false)
+  }, [])
 
-  // Add global event listeners
+  const handleTouchEnd = useCallback(() => {
+    setIsDragging(false)
+  }, [])
+
   useEffect(() => {
-    if (state.isDragging) {
+    if (isDragging) {
       document.addEventListener("mousemove", handleMouseMove)
       document.addEventListener("mouseup", handleMouseUp)
-      document.addEventListener("touchmove", handleTouchMove, { passive: false })
+      document.addEventListener("touchmove", handleTouchMove)
       document.addEventListener("touchend", handleTouchEnd)
 
       return () => {
@@ -142,17 +120,17 @@ export const useDraggable = (
         document.removeEventListener("touchend", handleTouchEnd)
       }
     }
-  }, [state.isDragging, handleMouseMove, handleMouseUp, handleTouchMove, handleTouchEnd])
+  }, [isDragging, handleMouseMove, handleMouseUp, handleTouchMove, handleTouchEnd])
+
+  useEffect(() => {
+    setPosition(initialPosition)
+  }, [initialPosition])
 
   return {
+    position,
+    isDragging,
     dragRef,
-    isDragging: state.isDragging,
-    position: state.position,
     handleMouseDown,
-    handleMouseMove,
-    handleMouseUp,
     handleTouchStart,
-    handleTouchMove,
-    handleTouchEnd,
   }
 }
