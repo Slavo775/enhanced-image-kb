@@ -1,21 +1,15 @@
-"use client";
+"use client"
 
-import type React from "react";
-import { useState, useRef, useCallback, useEffect } from "react";
-import { Button } from "./components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "./components/ui/card";
-import { Slider } from "./components/ui/slider";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "./components/ui/select";
-import { Input } from "./components/ui/input";
-import { Label } from "./components/ui/label";
-import { Separator } from "./components/ui/separator";
-import { Badge } from "./components/ui/badge";
+import type React from "react"
+import { useState, useRef, useCallback, useEffect } from "react"
+import { Button } from "./components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "./components/ui/card"
+import { Slider } from "./components/ui/slider"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./components/ui/select"
+import { Input } from "./components/ui/input"
+import { Label } from "./components/ui/label"
+import { Separator } from "./components/ui/separator"
+import { Badge } from "./components/ui/badge"
 import {
   Upload,
   Download,
@@ -32,37 +26,43 @@ import {
   Smartphone,
   Monitor,
   X,
-} from "lucide-react";
-import "../styles/globals.css";
+} from "lucide-react"
+import "./styles/globals.css"
 
 interface CropArea {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
+  x: number
+  y: number
+  width: number
+  height: number
 }
 
 interface StickerItem {
-  id: string;
-  type: "sticker" | "mention" | "location" | "custom-image";
-  content: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  rotation: number;
-  emoji?: string;
-  username?: string;
-  locationName?: string;
-  imageSrc?: string;
+  id: string
+  type: "sticker" | "mention" | "location" | "custom-image"
+  content: string
+  x: number
+  y: number
+  width: number
+  height: number
+  rotation: number
+  emoji?: string
+  username?: string
+  locationName?: string
+  imageSrc?: string
 }
 
 interface CanvasPreset {
-  name: string;
-  width: number;
-  height: number;
-  icon: React.ComponentType<{ size?: string | number }>;
-  platform: string;
+  name: string
+  width: number
+  height: number
+  icon: React.ComponentType<{ size?: string | number }>
+  platform: string
+}
+
+interface TouchData {
+  id: number
+  x: number
+  y: number
 }
 
 const CANVAS_PRESETS: CanvasPreset[] = [
@@ -116,35 +116,18 @@ const CANVAS_PRESETS: CanvasPreset[] = [
     icon: Smartphone,
     platform: "Custom",
   },
-];
+]
 
-const STICKER_EMOJIS = [
-  "😀",
-  "😂",
-  "❤️",
-  "👍",
-  "🔥",
-  "✨",
-  "🎉",
-  "💯",
-  "🚀",
-  "⭐",
-  "🌟",
-  "💫",
-  "🎯",
-  "💪",
-  "👏",
-  "🙌",
-];
+const STICKER_EMOJIS = ["😀", "😂", "❤️", "👍", "🔥", "✨", "🎉", "💯", "🚀", "⭐", "🌟", "💫", "🎯", "💪", "👏", "🙌"]
 
 function App() {
   // === SEKCIA 1: NAHRANIE OBRAZKA ===
-  const [originalImage, setOriginalImage] = useState<string | null>(null);
-  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [originalImage, setOriginalImage] = useState<string | null>(null)
+  const [imageFile, setImageFile] = useState<File | null>(null)
   const [imageDimensions, setImageDimensions] = useState({
     width: 0,
     height: 0,
-  });
+  })
 
   // === SEKCIA 2: CROP A EDITACIA ===
   const [cropArea, setCropArea] = useState<CropArea>({
@@ -152,96 +135,121 @@ function App() {
     y: 0,
     width: 400,
     height: 400,
-  });
-  const [canvasSize, setCanvasSize] = useState({ width: 1080, height: 1080 });
-  const [selectedPreset, setSelectedPreset] =
-    useState<string>("Instagram Post");
-  const [stickers, setStickers] = useState<StickerItem[]>([]);
-  const [selectedSticker, setSelectedSticker] = useState<string | null>(null);
+  })
+  const [canvasSize, setCanvasSize] = useState({ width: 1080, height: 1080 })
+  const [selectedPreset, setSelectedPreset] = useState<string>("Instagram Post")
+  const [stickers, setStickers] = useState<StickerItem[]>([])
+  const [selectedSticker, setSelectedSticker] = useState<string | null>(null)
   const [showTooltip, setShowTooltip] = useState<{
-    id: string;
-    x: number;
-    y: number;
-  } | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+    id: string
+    x: number
+    y: number
+  } | null>(null)
+
+  // Drag & Resize states
+  const [isDragging, setIsDragging] = useState(false)
+  const [isResizing, setIsResizing] = useState(false)
+  const [resizeHandle, setResizeHandle] = useState<string>("")
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
+  const [initialSize, setInitialSize] = useState({ width: 0, height: 0 })
+  const [initialPosition, setInitialPosition] = useState({ x: 0, y: 0 })
+
+  // Touch states
+  const [touches, setTouches] = useState<TouchData[]>([])
+  const [initialDistance, setInitialDistance] = useState(0)
+  const [initialStickerSize, setInitialStickerSize] = useState({ width: 0, height: 0 })
 
   // === SEKCIA 3: PREVIEW A EXPORT ===
-  const [previewImage, setPreviewImage] = useState<string | null>(null);
-  const [isExporting, setIsExporting] = useState(false);
+  const [previewImage, setPreviewImage] = useState<string | null>(null)
+  const [isExporting, setIsExporting] = useState(false)
 
   // Refs
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const cropCanvasRef = useRef<HTMLCanvasElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const cropCanvasRef = useRef<HTMLCanvasElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Helper functions
+  const getDistance = (touch1: TouchData, touch2: TouchData) => {
+    const dx = touch1.x - touch2.x
+    const dy = touch1.y - touch2.y
+    return Math.sqrt(dx * dx + dy * dy)
+  }
+
+  const getCanvasCoordinates = (clientX: number, clientY: number) => {
+    const canvas = canvasRef.current
+    if (!canvas) return { x: 0, y: 0 }
+
+    const rect = canvas.getBoundingClientRect()
+    const scaleX = canvasSize.width / rect.width
+    const scaleY = canvasSize.height / rect.height
+
+    return {
+      x: (clientX - rect.left) * scaleX,
+      y: (clientY - rect.top) * scaleY,
+    }
+  }
 
   // === SEKCIA 1: NAHRANIE OBRAZKA ===
-  const handleImageUpload = useCallback(
-    (event: React.ChangeEvent<HTMLInputElement>) => {
-      const file = event.target.files?.[0];
-      if (file && file.type.startsWith("image/")) {
-        setImageFile(file);
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const img = new Image();
-          img.onload = () => {
-            setOriginalImage(e.target?.result as string);
-            setImageDimensions({ width: img.width, height: img.height });
+  const handleImageUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file && file.type.startsWith("image/")) {
+      setImageFile(file)
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        const img = new Image()
+        img.onload = () => {
+          setOriginalImage(e.target?.result as string)
+          setImageDimensions({ width: img.width, height: img.height })
 
-            // Nastavenie defaultného crop area na stred obrazka
-            const defaultSize = Math.min(img.width, img.height, 400);
-            setCropArea({
-              x: (img.width - defaultSize) / 2,
-              y: (img.height - defaultSize) / 2,
-              width: defaultSize,
-              height: defaultSize,
-            });
-          };
-          img.src = e.target?.result as string;
-        };
-        reader.readAsDataURL(file);
+          // Nastavenie defaultného crop area na stred obrazka
+          const defaultSize = Math.min(img.width, img.height, 400)
+          setCropArea({
+            x: (img.width - defaultSize) / 2,
+            y: (img.height - defaultSize) / 2,
+            width: defaultSize,
+            height: defaultSize,
+          })
+        }
+        img.src = e.target?.result as string
       }
-    },
-    []
-  );
+      reader.readAsDataURL(file)
+    }
+  }, [])
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-  }, []);
+    e.preventDefault()
+  }, [])
 
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
-      e.preventDefault();
-      const files = Array.from(e.dataTransfer.files);
-      const imageFile = files.find((file) => file.type.startsWith("image/"));
+      e.preventDefault()
+      const files = Array.from(e.dataTransfer.files)
+      const imageFile = files.find((file) => file.type.startsWith("image/"))
       if (imageFile) {
         const fakeEvent = {
           target: { files: [imageFile] },
-        } as unknown as React.ChangeEvent<HTMLInputElement>;
-        handleImageUpload(fakeEvent);
+        } as unknown as React.ChangeEvent<HTMLInputElement>
+        handleImageUpload(fakeEvent)
       }
     },
-    [handleImageUpload]
-  );
+    [handleImageUpload],
+  )
 
   // === SEKCIA 2: CROP A EDITACIA ===
   const handlePresetChange = useCallback((presetName: string) => {
-    const preset = CANVAS_PRESETS.find((p) => p.name === presetName);
+    const preset = CANVAS_PRESETS.find((p) => p.name === presetName)
     if (preset) {
-      setSelectedPreset(presetName);
-      setCanvasSize({ width: preset.width, height: preset.height });
+      setSelectedPreset(presetName)
+      setCanvasSize({ width: preset.width, height: preset.height })
     }
-  }, []);
+  }, [])
 
-  const handleCropChange = useCallback(
-    (property: keyof CropArea, value: number) => {
-      setCropArea((prev) => ({
-        ...prev,
-        [property]: Math.max(0, value),
-      }));
-    },
-    []
-  );
+  const handleCropChange = useCallback((property: keyof CropArea, value: number) => {
+    setCropArea((prev) => ({
+      ...prev,
+      [property]: Math.max(0, value),
+    }))
+  }, [])
 
   const addSticker = useCallback(
     (type: StickerItem["type"], content: string, extra?: any) => {
@@ -255,189 +263,289 @@ function App() {
         height: 100,
         rotation: 0,
         ...extra,
-      };
-      setStickers((prev) => [...prev, newSticker]);
+      }
+      setStickers((prev) => [...prev, newSticker])
     },
-    [canvasSize]
-  );
+    [canvasSize],
+  )
 
-  const updateSticker = useCallback(
-    (id: string, updates: Partial<StickerItem>) => {
-      setStickers((prev) =>
-        prev.map((sticker) =>
-          sticker.id === id ? { ...sticker, ...updates } : sticker
-        )
-      );
-    },
-    []
-  );
+  const updateSticker = useCallback((id: string, updates: Partial<StickerItem>) => {
+    setStickers((prev) => prev.map((sticker) => (sticker.id === id ? { ...sticker, ...updates } : sticker)))
+  }, [])
 
   const removeSticker = useCallback((id: string) => {
-    setStickers((prev) => prev.filter((sticker) => sticker.id !== id));
-    setSelectedSticker(null);
-    setShowTooltip(null);
-  }, []);
+    setStickers((prev) => prev.filter((sticker) => sticker.id !== id))
+    setSelectedSticker(null)
+    setShowTooltip(null)
+  }, [])
 
-  const handleStickerClick = useCallback(
-    (sticker: StickerItem, event: React.MouseEvent) => {
-      event.stopPropagation();
-      setSelectedSticker(sticker.id);
-      setShowTooltip({
-        id: sticker.id,
-        x: event.clientX,
-        y: event.clientY,
-      });
-    },
-    []
-  );
+  // Touch handlers
+  const handleTouchStart = useCallback((sticker: StickerItem, event: React.TouchEvent) => {
+    event.preventDefault()
+    setSelectedSticker(sticker.id)
 
-  const handleStickerMouseDown = useCallback(
-    (sticker: StickerItem, event: React.MouseEvent) => {
-      event.preventDefault();
-      setIsDragging(true);
-      setSelectedSticker(sticker.id);
-      const rect = event.currentTarget.getBoundingClientRect();
+    const touchList = Array.from(event.touches).map((touch, index) => ({
+      id: index,
+      x: touch.clientX,
+      y: touch.clientY,
+    }))
+
+    setTouches(touchList)
+
+    if (touchList.length === 2) {
+      // Pinch gesture - resize
+      const distance = getDistance(touchList[0], touchList[1])
+      setInitialDistance(distance)
+      setInitialStickerSize({ width: sticker.width, height: sticker.height })
+    } else if (touchList.length === 1) {
+      // Single touch - drag
+      setIsDragging(true)
+      const coords = getCanvasCoordinates(touchList[0].x, touchList[0].y)
       setDragOffset({
-        x: event.clientX - rect.left,
-        y: event.clientY - rect.top,
-      });
+        x: coords.x - sticker.x,
+        y: coords.y - sticker.y,
+      })
+    }
+  }, [])
+
+  const handleTouchMove = useCallback(
+    (event: React.TouchEvent) => {
+      if (!selectedSticker) return
+
+      event.preventDefault()
+      const touchList = Array.from(event.touches).map((touch, index) => ({
+        id: index,
+        x: touch.clientX,
+        y: touch.clientY,
+      }))
+
+      if (touchList.length === 2 && initialDistance > 0) {
+        // Pinch resize
+        const currentDistance = getDistance(touchList[0], touchList[1])
+        const scale = currentDistance / initialDistance
+
+        const newWidth = Math.max(20, Math.min(300, initialStickerSize.width * scale))
+        const newHeight = Math.max(20, Math.min(300, initialStickerSize.height * scale))
+
+        updateSticker(selectedSticker, {
+          width: newWidth,
+          height: newHeight,
+        })
+      } else if (touchList.length === 1 && isDragging) {
+        // Single touch drag
+        const coords = getCanvasCoordinates(touchList[0].x, touchList[0].y)
+        const newX = Math.max(0, Math.min(canvasSize.width - 50, coords.x - dragOffset.x))
+        const newY = Math.max(0, Math.min(canvasSize.height - 50, coords.y - dragOffset.y))
+
+        updateSticker(selectedSticker, { x: newX, y: newY })
+      }
+
+      setTouches(touchList)
     },
-    []
-  );
+    [selectedSticker, isDragging, initialDistance, initialStickerSize, dragOffset, canvasSize, updateSticker],
+  )
+
+  const handleTouchEnd = useCallback(() => {
+    setTouches([])
+    setIsDragging(false)
+    setInitialDistance(0)
+    setInitialStickerSize({ width: 0, height: 0 })
+  }, [])
+
+  // Mouse handlers
+  const handleStickerClick = useCallback((sticker: StickerItem, event: React.MouseEvent) => {
+    event.stopPropagation()
+    setSelectedSticker(sticker.id)
+    setShowTooltip({
+      id: sticker.id,
+      x: event.clientX,
+      y: event.clientY,
+    })
+  }, [])
+
+  const handleStickerMouseDown = useCallback((sticker: StickerItem, event: React.MouseEvent) => {
+    event.preventDefault()
+    setIsDragging(true)
+    setSelectedSticker(sticker.id)
+
+    const coords = getCanvasCoordinates(event.clientX, event.clientY)
+    setDragOffset({
+      x: coords.x - sticker.x,
+      y: coords.y - sticker.y,
+    })
+  }, [])
+
+  const handleResizeMouseDown = useCallback((sticker: StickerItem, handle: string, event: React.MouseEvent) => {
+    event.preventDefault()
+    event.stopPropagation()
+
+    setIsResizing(true)
+    setResizeHandle(handle)
+    setSelectedSticker(sticker.id)
+    setInitialSize({ width: sticker.width, height: sticker.height })
+    setInitialPosition({ x: sticker.x, y: sticker.y })
+
+    const coords = getCanvasCoordinates(event.clientX, event.clientY)
+    setDragOffset({ x: coords.x, y: coords.y })
+  }, [])
 
   const handleMouseMove = useCallback(
     (event: React.MouseEvent) => {
-      if (isDragging && selectedSticker) {
-        const canvas = canvasRef.current;
-        if (canvas) {
-          const rect = canvas.getBoundingClientRect();
-          const x = event.clientX - rect.left - dragOffset.x;
-          const y = event.clientY - rect.top - dragOffset.y;
-          updateSticker(selectedSticker, { x, y });
+      if (!selectedSticker) return
+
+      const coords = getCanvasCoordinates(event.clientX, event.clientY)
+
+      if (isResizing && resizeHandle) {
+        const deltaX = coords.x - dragOffset.x
+        const deltaY = coords.y - dragOffset.y
+
+        let newWidth = initialSize.width
+        let newHeight = initialSize.height
+        let newX = initialPosition.x
+        let newY = initialPosition.y
+
+        switch (resizeHandle) {
+          case "se": // bottom-right
+            newWidth = Math.max(20, initialSize.width + deltaX)
+            newHeight = Math.max(20, initialSize.height + deltaY)
+            break
+          case "sw": // bottom-left
+            newWidth = Math.max(20, initialSize.width - deltaX)
+            newHeight = Math.max(20, initialSize.height + deltaY)
+            newX = initialPosition.x + (initialSize.width - newWidth)
+            break
+          case "ne": // top-right
+            newWidth = Math.max(20, initialSize.width + deltaX)
+            newHeight = Math.max(20, initialSize.height - deltaY)
+            newY = initialPosition.y + (initialSize.height - newHeight)
+            break
+          case "nw": // top-left
+            newWidth = Math.max(20, initialSize.width - deltaX)
+            newHeight = Math.max(20, initialSize.height - deltaY)
+            newX = initialPosition.x + (initialSize.width - newWidth)
+            newY = initialPosition.y + (initialSize.height - newHeight)
+            break
         }
+
+        updateSticker(selectedSticker, {
+          width: Math.min(300, newWidth),
+          height: Math.min(300, newHeight),
+          x: Math.max(0, Math.min(canvasSize.width - newWidth, newX)),
+          y: Math.max(0, Math.min(canvasSize.height - newHeight, newY)),
+        })
+      } else if (isDragging) {
+        const newX = Math.max(0, Math.min(canvasSize.width - 50, coords.x - dragOffset.x))
+        const newY = Math.max(0, Math.min(canvasSize.height - 50, coords.y - dragOffset.y))
+
+        updateSticker(selectedSticker, { x: newX, y: newY })
       }
     },
-    [isDragging, selectedSticker, dragOffset, updateSticker]
-  );
+    [
+      isDragging,
+      isResizing,
+      selectedSticker,
+      resizeHandle,
+      dragOffset,
+      initialSize,
+      initialPosition,
+      canvasSize,
+      updateSticker,
+    ],
+  )
 
   const handleMouseUp = useCallback(() => {
-    setIsDragging(false);
-  }, []);
+    setIsDragging(false)
+    setIsResizing(false)
+    setResizeHandle("")
+  }, [])
 
   // === SEKCIA 3: PREVIEW A EXPORT ===
   const generatePreview = useCallback(async () => {
-    if (!originalImage || !canvasRef.current) return;
+    if (!originalImage || !canvasRef.current) return
 
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    const canvas = canvasRef.current
+    const ctx = canvas.getContext("2d")
+    if (!ctx) return
 
-    canvas.width = canvasSize.width;
-    canvas.height = canvasSize.height;
+    canvas.width = canvasSize.width
+    canvas.height = canvasSize.height
 
     // Vyčistenie canvasu
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#ffffff"
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
 
     // Nakreslenie orezaného obrazka
-    const img = new Image();
+    const img = new Image()
     img.onload = () => {
-      ctx.drawImage(
-        img,
-        cropArea.x,
-        cropArea.y,
-        cropArea.width,
-        cropArea.height,
-        0,
-        0,
-        canvas.width,
-        canvas.height
-      );
+      ctx.drawImage(img, cropArea.x, cropArea.y, cropArea.width, cropArea.height, 0, 0, canvas.width, canvas.height)
 
       // Nakreslenie stickerov
       stickers.forEach((sticker) => {
-        ctx.save();
-        ctx.translate(
-          sticker.x + sticker.width / 2,
-          sticker.y + sticker.height / 2
-        );
-        ctx.rotate((sticker.rotation * Math.PI) / 180);
+        ctx.save()
+        ctx.translate(sticker.x + sticker.width / 2, sticker.y + sticker.height / 2)
+        ctx.rotate((sticker.rotation * Math.PI) / 180)
 
         if (sticker.type === "sticker" && sticker.emoji) {
-          ctx.font = `${sticker.height}px Arial`;
-          ctx.textAlign = "center";
-          ctx.textBaseline = "middle";
-          ctx.fillText(sticker.emoji, 0, 0);
+          ctx.font = `${sticker.height}px Arial`
+          ctx.textAlign = "center"
+          ctx.textBaseline = "middle"
+          ctx.fillText(sticker.emoji, 0, 0)
         } else if (sticker.type === "mention" && sticker.username) {
-          ctx.fillStyle = "#1DA1F2";
-          ctx.fillRect(
-            -sticker.width / 2,
-            -sticker.height / 2,
-            sticker.width,
-            sticker.height
-          );
-          ctx.fillStyle = "white";
-          ctx.font = `${sticker.height / 3}px Arial`;
-          ctx.textAlign = "center";
-          ctx.textBaseline = "middle";
-          ctx.fillText(`@${sticker.username}`, 0, 0);
+          ctx.fillStyle = "#1DA1F2"
+          ctx.fillRect(-sticker.width / 2, -sticker.height / 2, sticker.width, sticker.height)
+          ctx.fillStyle = "white"
+          ctx.font = `${sticker.height / 3}px Arial`
+          ctx.textAlign = "center"
+          ctx.textBaseline = "middle"
+          ctx.fillText(`@${sticker.username}`, 0, 0)
         } else if (sticker.type === "location" && sticker.locationName) {
-          ctx.fillStyle = "#FF6B6B";
-          ctx.fillRect(
-            -sticker.width / 2,
-            -sticker.height / 2,
-            sticker.width,
-            sticker.height
-          );
-          ctx.fillStyle = "white";
-          ctx.font = `${sticker.height / 4}px Arial`;
-          ctx.textAlign = "center";
-          ctx.textBaseline = "middle";
-          ctx.fillText(`📍 ${sticker.locationName}`, 0, 0);
+          ctx.fillStyle = "#FF6B6B"
+          ctx.fillRect(-sticker.width / 2, -sticker.height / 2, sticker.width, sticker.height)
+          ctx.fillStyle = "white"
+          ctx.font = `${sticker.height / 4}px Arial`
+          ctx.textAlign = "center"
+          ctx.textBaseline = "middle"
+          ctx.fillText(`📍 ${sticker.locationName}`, 0, 0)
         }
 
-        ctx.restore();
-      });
+        ctx.restore()
+      })
 
       // Vytvorenie preview
-      setPreviewImage(canvas.toDataURL("image/png"));
-    };
-    img.src = originalImage;
-  }, [originalImage, canvasSize, cropArea, stickers]);
+      setPreviewImage(canvas.toDataURL("image/png"))
+    }
+    img.src = originalImage
+  }, [originalImage, canvasSize, cropArea, stickers])
 
   const handleDownload = useCallback(async () => {
-    if (!previewImage) return;
+    if (!previewImage) return
 
-    setIsExporting(true);
+    setIsExporting(true)
     try {
-      const link = document.createElement("a");
-      link.download = `edited-image-${Date.now()}.png`;
-      link.href = previewImage;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      const link = document.createElement("a")
+      link.download = `edited-image-${Date.now()}.png`
+      link.href = previewImage
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
     } finally {
-      setIsExporting(false);
+      setIsExporting(false)
     }
-  }, [previewImage]);
+  }, [previewImage])
 
   // Automatické generovanie preview pri zmene
   useEffect(() => {
     if (originalImage) {
-      generatePreview();
+      generatePreview()
     }
-  }, [generatePreview, originalImage]);
+  }, [generatePreview, originalImage])
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            🎨 Enhanced Image Editor
-          </h1>
-          <p className="text-lg text-gray-600">
-            Nahrajte obrázok, upravte ho a pridajte stickers, mentions a lokácie
-          </p>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">🎨 Enhanced Image Editor</h1>
+          <p className="text-lg text-gray-600">Nahrajte obrázok, upravte ho a pridajte stickers, mentions a lokácie</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -465,17 +573,14 @@ function App() {
                     className="hidden"
                   />
                   <Upload className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                  <p className="text-lg font-medium mb-2">
-                    Kliknite alebo pretiahnite obrázok
-                  </p>
+                  <p className="text-lg font-medium mb-2">Kliknite alebo pretiahnite obrázok</p>
                   <p className="text-sm text-gray-500">PNG, JPG, GIF do 10MB</p>
                 </div>
 
                 {originalImage && (
                   <div className="mt-4 p-3 bg-green-50 rounded-lg">
                     <p className="text-sm text-green-700">
-                      ✅ Obrázok nahraný: {imageDimensions.width} ×{" "}
-                      {imageDimensions.height}px
+                      ✅ Obrázok nahraný: {imageDimensions.width} × {imageDimensions.height}px
                     </p>
                   </div>
                 )}
@@ -494,16 +599,13 @@ function App() {
                 <CardContent className="space-y-4">
                   <div>
                     <Label>Prednastavené veľkosti</Label>
-                    <Select
-                      value={selectedPreset}
-                      onValueChange={handlePresetChange}
-                    >
+                    <Select value={selectedPreset} onValueChange={handlePresetChange}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
                         {CANVAS_PRESETS.map((preset) => {
-                          const Icon = preset.icon;
+                          const Icon = preset.icon
                           return (
                             <SelectItem key={preset.name} value={preset.name}>
                               <div className="flex items-center gap-2">
@@ -514,7 +616,7 @@ function App() {
                                 </Badge>
                               </div>
                             </SelectItem>
-                          );
+                          )
                         })}
                       </SelectContent>
                     </Select>
@@ -527,9 +629,7 @@ function App() {
                       <Label>X pozícia: {cropArea.x}</Label>
                       <Slider
                         value={[cropArea.x]}
-                        onValueChange={([value]) =>
-                          handleCropChange("x", value)
-                        }
+                        onValueChange={([value]) => handleCropChange("x", value)}
                         max={imageDimensions.width - cropArea.width}
                         step={1}
                       />
@@ -538,9 +638,7 @@ function App() {
                       <Label>Y pozícia: {cropArea.y}</Label>
                       <Slider
                         value={[cropArea.y]}
-                        onValueChange={([value]) =>
-                          handleCropChange("y", value)
-                        }
+                        onValueChange={([value]) => handleCropChange("y", value)}
                         max={imageDimensions.height - cropArea.height}
                         step={1}
                       />
@@ -549,9 +647,7 @@ function App() {
                       <Label>Šírka: {cropArea.width}</Label>
                       <Slider
                         value={[cropArea.width]}
-                        onValueChange={([value]) =>
-                          handleCropChange("width", value)
-                        }
+                        onValueChange={([value]) => handleCropChange("width", value)}
                         min={50}
                         max={imageDimensions.width}
                         step={1}
@@ -561,9 +657,7 @@ function App() {
                       <Label>Výška: {cropArea.height}</Label>
                       <Slider
                         value={[cropArea.height]}
-                        onValueChange={([value]) =>
-                          handleCropChange("height", value)
-                        }
+                        onValueChange={([value]) => handleCropChange("height", value)}
                         min={50}
                         max={imageDimensions.height}
                         step={1}
@@ -593,9 +687,7 @@ function App() {
                           key={emoji}
                           variant="outline"
                           size="sm"
-                          onClick={() =>
-                            addSticker("sticker", emoji, { emoji })
-                          }
+                          onClick={() => addSticker("sticker", emoji, { emoji })}
                           className="text-lg"
                         >
                           {emoji}
@@ -614,12 +706,10 @@ function App() {
                         placeholder="Používateľské meno"
                         onKeyDown={(e) => {
                           if (e.key === "Enter") {
-                            const username = (
-                              e.target as HTMLInputElement
-                            ).value.trim();
+                            const username = (e.target as HTMLInputElement).value.trim()
                             if (username) {
-                              addSticker("mention", username, { username });
-                              (e.target as HTMLInputElement).value = "";
+                              addSticker("mention", username, { username })
+                              ;(e.target as HTMLInputElement).value = ""
                             }
                           }
                         }}
@@ -628,12 +718,12 @@ function App() {
                         size="sm"
                         onClick={() => {
                           const input = document.querySelector(
-                            'input[placeholder="Používateľské meno"]'
-                          ) as HTMLInputElement;
-                          const username = input?.value.trim();
+                            'input[placeholder="Používateľské meno"]',
+                          ) as HTMLInputElement
+                          const username = input?.value.trim()
                           if (username) {
-                            addSticker("mention", username, { username });
-                            input.value = "";
+                            addSticker("mention", username, { username })
+                            input.value = ""
                           }
                         }}
                       >
@@ -652,14 +742,12 @@ function App() {
                         placeholder="Názov lokácie"
                         onKeyDown={(e) => {
                           if (e.key === "Enter") {
-                            const locationName = (
-                              e.target as HTMLInputElement
-                            ).value.trim();
+                            const locationName = (e.target as HTMLInputElement).value.trim()
                             if (locationName) {
                               addSticker("location", locationName, {
                                 locationName,
-                              });
-                              (e.target as HTMLInputElement).value = "";
+                              })
+                              ;(e.target as HTMLInputElement).value = ""
                             }
                           }
                         }}
@@ -667,15 +755,13 @@ function App() {
                       <Button
                         size="sm"
                         onClick={() => {
-                          const input = document.querySelector(
-                            'input[placeholder="Názov lokácie"]'
-                          ) as HTMLInputElement;
-                          const locationName = input?.value.trim();
+                          const input = document.querySelector('input[placeholder="Názov lokácie"]') as HTMLInputElement
+                          const locationName = input?.value.trim()
                           if (locationName) {
                             addSticker("location", locationName, {
                               locationName,
-                            });
-                            input.value = "";
+                            })
+                            input.value = ""
                           }
                         }}
                       >
@@ -700,12 +786,14 @@ function App() {
                 </CardHeader>
                 <CardContent>
                   <div
-                    className="relative border rounded-lg overflow-hidden bg-white"
+                    className="relative border rounded-lg overflow-hidden bg-white select-none"
                     style={{
                       aspectRatio: `${canvasSize.width}/${canvasSize.height}`,
                     }}
                     onMouseMove={handleMouseMove}
                     onMouseUp={handleMouseUp}
+                    onTouchMove={handleTouchMove}
+                    onTouchEnd={handleTouchEnd}
                   >
                     <canvas
                       ref={canvasRef}
@@ -719,51 +807,72 @@ function App() {
                     {stickers.map((sticker) => (
                       <div
                         key={sticker.id}
-                        className={`absolute cursor-move border-2 ${
+                        className={`absolute select-none touch-none ${
                           selectedSticker === sticker.id
-                            ? "border-blue-500"
-                            : "border-transparent"
-                        } hover:border-blue-300 transition-colors`}
+                            ? "border-2 border-blue-500"
+                            : "border-2 border-transparent hover:border-blue-300"
+                        } transition-colors`}
                         style={{
                           left: `${(sticker.x / canvasSize.width) * 100}%`,
                           top: `${(sticker.y / canvasSize.height) * 100}%`,
                           width: `${(sticker.width / canvasSize.width) * 100}%`,
-                          height: `${
-                            (sticker.height / canvasSize.height) * 100
-                          }%`,
+                          height: `${(sticker.height / canvasSize.height) * 100}%`,
                           transform: `rotate(${sticker.rotation}deg)`,
+                          cursor: isDragging ? "grabbing" : "grab",
                         }}
                         onClick={(e) => handleStickerClick(sticker, e)}
                         onMouseDown={(e) => handleStickerMouseDown(sticker, e)}
+                        onTouchStart={(e) => handleTouchStart(sticker, e)}
                       >
-                        {sticker.type === "sticker" && (
-                          <div className="w-full h-full flex items-center justify-center text-2xl">
-                            {sticker.emoji}
-                          </div>
-                        )}
-                        {sticker.type === "mention" && (
-                          <div className="w-full h-full bg-blue-500 text-white rounded px-2 py-1 text-xs flex items-center justify-center">
-                            @{sticker.username}
-                          </div>
-                        )}
-                        {sticker.type === "location" && (
-                          <div className="w-full h-full bg-red-500 text-white rounded px-2 py-1 text-xs flex items-center justify-center">
-                            📍 {sticker.locationName}
-                          </div>
-                        )}
+                        {/* Sticker Content */}
+                        <div className="w-full h-full flex items-center justify-center pointer-events-none">
+                          {sticker.type === "sticker" && <div className="text-2xl">{sticker.emoji}</div>}
+                          {sticker.type === "mention" && (
+                            <div className="w-full h-full bg-blue-500 text-white rounded px-2 py-1 text-xs flex items-center justify-center">
+                              @{sticker.username}
+                            </div>
+                          )}
+                          {sticker.type === "location" && (
+                            <div className="w-full h-full bg-red-500 text-white rounded px-2 py-1 text-xs flex items-center justify-center">
+                              📍 {sticker.locationName}
+                            </div>
+                          )}
+                        </div>
 
+                        {/* Resize Handles - pouze pro vybraný sticker */}
                         {selectedSticker === sticker.id && (
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            className="absolute -top-2 -right-2 w-6 h-6 p-0"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              removeSticker(sticker.id);
-                            }}
-                          >
-                            <X className="w-3 h-3" />
-                          </Button>
+                          <>
+                            {/* Delete Button */}
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              className="absolute -top-3 -right-3 w-6 h-6 p-0 z-10"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                removeSticker(sticker.id)
+                              }}
+                            >
+                              <X className="w-3 h-3" />
+                            </Button>
+
+                            {/* Resize Handles */}
+                            <div
+                              className="absolute -top-1 -left-1 w-3 h-3 bg-blue-500 border border-white rounded-full cursor-nw-resize"
+                              onMouseDown={(e) => handleResizeMouseDown(sticker, "nw", e)}
+                            />
+                            <div
+                              className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 border border-white rounded-full cursor-ne-resize"
+                              onMouseDown={(e) => handleResizeMouseDown(sticker, "ne", e)}
+                            />
+                            <div
+                              className="absolute -bottom-1 -left-1 w-3 h-3 bg-blue-500 border border-white rounded-full cursor-sw-resize"
+                              onMouseDown={(e) => handleResizeMouseDown(sticker, "sw", e)}
+                            />
+                            <div
+                              className="absolute -bottom-1 -right-1 w-3 h-3 bg-blue-500 border border-white rounded-full cursor-se-resize"
+                              onMouseDown={(e) => handleResizeMouseDown(sticker, "se", e)}
+                            />
+                          </>
                         )}
                       </div>
                     ))}
@@ -774,55 +883,48 @@ function App() {
                     <div className="mt-4 p-4 bg-gray-50 rounded-lg">
                       <h4 className="font-medium mb-3">Vlastnosti prvku</h4>
                       {(() => {
-                        const sticker = stickers.find(
-                          (s) => s.id === selectedSticker
-                        );
-                        if (!sticker) return null;
+                        const sticker = stickers.find((s) => s.id === selectedSticker)
+                        if (!sticker) return null
 
                         return (
                           <div className="space-y-3">
                             <div className="grid grid-cols-2 gap-2">
                               <div>
-                                <Label className="text-xs">Šírka</Label>
+                                <Label className="text-xs">Šírka: {Math.round(sticker.width)}</Label>
                                 <Slider
                                   value={[sticker.width]}
-                                  onValueChange={([value]) =>
-                                    updateSticker(sticker.id, { width: value })
-                                  }
+                                  onValueChange={([value]) => updateSticker(sticker.id, { width: value })}
                                   min={20}
-                                  max={200}
+                                  max={300}
                                   step={1}
                                 />
                               </div>
                               <div>
-                                <Label className="text-xs">Výška</Label>
+                                <Label className="text-xs">Výška: {Math.round(sticker.height)}</Label>
                                 <Slider
                                   value={[sticker.height]}
-                                  onValueChange={([value]) =>
-                                    updateSticker(sticker.id, { height: value })
-                                  }
+                                  onValueChange={([value]) => updateSticker(sticker.id, { height: value })}
                                   min={20}
-                                  max={200}
+                                  max={300}
                                   step={1}
                                 />
                               </div>
                             </div>
                             <div>
-                              <Label className="text-xs">
-                                Rotácia: {sticker.rotation}°
-                              </Label>
+                              <Label className="text-xs">Rotácia: {sticker.rotation}°</Label>
                               <Slider
                                 value={[sticker.rotation]}
-                                onValueChange={([value]) =>
-                                  updateSticker(sticker.id, { rotation: value })
-                                }
+                                onValueChange={([value]) => updateSticker(sticker.id, { rotation: value })}
                                 min={-180}
                                 max={180}
                                 step={1}
                               />
                             </div>
+                            <div className="text-xs text-gray-500">
+                              💡 Tip: Na mobile použite pinch gesture pre resize, na desktope ťahajte za modré body
+                            </div>
                           </div>
-                        );
+                        )
                       })()}
                     </div>
                   )}
@@ -859,11 +961,7 @@ function App() {
                     </div>
 
                     <div className="flex flex-col gap-2">
-                      <Button
-                        onClick={handleDownload}
-                        disabled={isExporting}
-                        className="w-full"
-                      >
+                      <Button onClick={handleDownload} disabled={isExporting} className="w-full">
                         {isExporting ? (
                           <>
                             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
@@ -905,25 +1003,25 @@ function App() {
             }}
           >
             {(() => {
-              const sticker = stickers.find((s) => s.id === showTooltip.id);
-              if (!sticker) return "Neznámy prvok";
+              const sticker = stickers.find((s) => s.id === showTooltip.id)
+              if (!sticker) return "Neznámy prvok"
 
               switch (sticker.type) {
                 case "sticker":
-                  return `Sticker: ${sticker.emoji}`;
+                  return `Sticker: ${sticker.emoji}`
                 case "mention":
-                  return `Mention: @${sticker.username}`;
+                  return `Mention: @${sticker.username}`
                 case "location":
-                  return `Lokácia: ${sticker.locationName}`;
+                  return `Lokácia: ${sticker.locationName}`
                 default:
-                  return "Prvok";
+                  return "Prvok"
               }
             })()}
           </div>
         )}
       </div>
     </div>
-  );
+  )
 }
 
-export default App;
+export default App
