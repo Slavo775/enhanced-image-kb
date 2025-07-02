@@ -11,7 +11,6 @@
   },
   "dependencies": {
     "@eslint/js": "latest",
-    "@hookform/resolvers": "latest",
     "@radix-ui/react-accordion": "latest",
     "@radix-ui/react-alert-dialog": "latest",
     "@radix-ui/react-aspect-ratio": "latest",
@@ -22,7 +21,6 @@
     "@radix-ui/react-dialog": "latest",
     "@radix-ui/react-dropdown-menu": "latest",
     "@radix-ui/react-hover-card": "latest",
-    "@radix-ui/react-icons": "latest",
     "@radix-ui/react-label": "latest",
     "@radix-ui/react-menubar": "latest",
     "@radix-ui/react-navigation-menu": "latest",
@@ -48,7 +46,6 @@
     "clsx": "^2.1.1",
     "cmdk": "latest",
     "embla-carousel-react": "latest",
-    "file-saver": "latest",
     "globals": "latest",
     "input-otp": "latest",
     "jiti": "latest",
@@ -78,11 +75,8 @@
     "tslib": "latest",
     "tsx": "latest",
     "typescript-eslint": "latest",
-    "use-screenshot-hook": "latest",
-    "uuid": "latest",
     "vaul": "latest",
-    "yaml": "latest",
-    "zod": "latest"
+    "yaml": "latest"
   },
   "devDependencies": {
     "@types/node": "^22",
