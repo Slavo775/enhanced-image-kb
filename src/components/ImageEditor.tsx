@@ -17,13 +17,12 @@ interface ImageEditorProps {
   onCancel: () => void
 }
 
-const ImageEditor: React.FC<ImageEditorProps> = ({ imageSrc, onSave, onCancel }) => {
+export function ImageEditor({ imageSrc, onSave, onCancel }: ImageEditorProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const imageRef = useRef<HTMLImageElement>(null)
   const [zoom, setZoom] = useState(1)
   const [rotation, setRotation] = useState(0)
   const [aspect, setAspect] = useState<AspectRatioType>("original")
-  const [showExportOptions, setShowExportOptions] = useState(false)
   const [exportWidth, setExportWidth] = useState(500)
   const [exportHeight, setExportHeight] = useState(500)
 
@@ -65,12 +64,12 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ imageSrc, onSave, onCancel })
     }
   }
 
-  const handleZoomChange = (value: number) => {
-    setZoom(value)
+  const handleZoomChange = (value: number[]) => {
+    setZoom(value[0])
   }
 
-  const handleRotationChange = (value: number) => {
-    setRotation(value)
+  const handleRotationChange = (value: number[]) => {
+    setRotation(value[0])
   }
 
   const handleAspectChange = (value: AspectRatioType) => {
@@ -85,18 +84,6 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ imageSrc, onSave, onCancel })
         onSave(blob)
       }
     }
-  }
-
-  const handleCancelClick = () => {
-    onCancel()
-  }
-
-  const handleExportOptionsOpen = () => {
-    setShowExportOptions(true)
-  }
-
-  const handleExportOptionsClose = () => {
-    setShowExportOptions(false)
   }
 
   const handleExportWidthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -120,39 +107,55 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ imageSrc, onSave, onCancel })
         />
       </div>
 
-      <div className="p-4">
-        <div className="mb-4">
-          <Label htmlFor="zoom">Zoom:</Label>
-          <Slider id="zoom" min={1} max={3} step={0.1} value={zoom} onValueChange={handleZoomChange} />
+      <div className="p-4 space-y-4">
+        <div>
+          <Label htmlFor="zoom">Zoom: {zoom.toFixed(1)}x</Label>
+          <Slider
+            id="zoom"
+            min={[1]}
+            max={[3]}
+            step={[0.1]}
+            value={[zoom]}
+            onValueChange={handleZoomChange}
+            className="mt-2"
+          />
         </div>
 
-        <div className="mb-4">
-          <Label htmlFor="rotation">Rotation:</Label>
-          <Slider id="rotation" min={-180} max={180} step={1} value={rotation} onValueChange={handleRotationChange} />
+        <div>
+          <Label htmlFor="rotation">Rotation: {rotation}°</Label>
+          <Slider
+            id="rotation"
+            min={[-180]}
+            max={[180]}
+            step={[1]}
+            value={[rotation]}
+            onValueChange={handleRotationChange}
+            className="mt-2"
+          />
         </div>
 
-        <div className="mb-4">
+        <div>
           <Label>Aspect Ratio:</Label>
           <Select onValueChange={handleAspectChange} defaultValue={aspect}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-[180px] mt-2">
               <SelectValue placeholder="Select aspect" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="original">Original</SelectItem>
-              <SelectItem value="1/1">1:1</SelectItem>
+              <SelectItem value="1/1">1:1 (Square)</SelectItem>
               <SelectItem value="4/3">4:3</SelectItem>
               <SelectItem value="16/9">16:9</SelectItem>
             </SelectContent>
           </Select>
         </div>
 
-        <div className="flex justify-between">
-          <Button variant="secondary" onClick={handleCancelClick}>
+        <div className="flex justify-between pt-4">
+          <Button variant="secondary" onClick={onCancel}>
             Cancel
           </Button>
           <Dialog>
             <DialogTrigger asChild>
-              <Button>Save</Button>
+              <Button>Export Image</Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
               <DialogHeader>
@@ -185,7 +188,9 @@ const ImageEditor: React.FC<ImageEditorProps> = ({ imageSrc, onSave, onCancel })
                   />
                 </div>
               </div>
-              <Button onClick={handleSave}>Export</Button>
+              <Button onClick={handleSave} className="w-full">
+                Export
+              </Button>
             </DialogContent>
           </Dialog>
         </div>

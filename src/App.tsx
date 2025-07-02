@@ -1,373 +1,114 @@
-"use client";
+"use client"
 
-import { useState, useCallback } from "react";
-import { ImageUpload } from "./components/ImageUpload";
-import { BackgroundControls } from "./components/BackgroundControls";
-import { ImageCropper } from "./components/ImageCropper";
-import { ImageEditor } from "./components/ImageEditor";
-import { Card, CardContent, CardHeader, CardTitle } from "./components/ui/card";
-import { Button } from "./components/ui/button";
-import { Slider } from "./components/ui/slider";
-import { Monitor, Smartphone, Square } from "lucide-react";
-import type { BackgroundSettings, CropArea, EditorData } from "./types";
-
-const CANVAS_PRESETS = [
-  { name: "Instagram Square", icon: Square, width: 400, height: 400 },
-  { name: "Instagram Story", icon: Smartphone, width: 300, height: 533 },
-  { name: "Twitter Post", icon: Monitor, width: 400, height: 225 },
-  { name: "Facebook Post", icon: Monitor, width: 400, height: 210 },
-];
+import type React from "react"
+import { useState } from "react"
+import { ImageEditor } from "./components/ImageEditor"
+import { InstagramEditor } from "./components/InstagramEditor"
+import { Button } from "./components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "./components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/ui/tabs"
+import "./styles/globals.css"
 
 function App() {
-  // Image state
-  const [originalImage, setOriginalImage] = useState<{
-    src: string;
-    width: number;
-    height: number;
-    file?: File;
-  } | null>(null);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState("upload")
 
-  const [croppedImage, setCroppedImage] = useState<{
-    src: string;
-    cropData: CropArea;
-  } | null>(null);
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        setSelectedImage(e.target?.result as string)
+        setActiveTab("editor")
+      }
+      reader.readAsDataURL(file)
+    }
+  }
 
-  // Canvas settings
-  const [canvasSize, setCanvasSize] = useState({ width: 400, height: 400 });
+  const handleSave = (blob: Blob) => {
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = "edited-image.png"
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
 
-  // Background settings
-  const [backgroundSettings, setBackgroundSettings] =
-    useState<BackgroundSettings>({
-      scale: 1,
-      rotation: 0,
-      offsetX: 0,
-      offsetY: 0,
-      opacity: 1,
-      brightness: 1,
-      contrast: 1,
-      saturation: 1,
-      blur: 0,
-    });
-
-  // Editor data
-  const [editorData, setEditorData] = useState<EditorData>({
-    image: null,
-    stickers: [],
-    cropArea: null,
-    backgroundSettings: {
-      scale: 0,
-      rotation: 0,
-      offsetX: 0,
-      offsetY: 0,
-      opacity: 0,
-      brightness: 0,
-      contrast: 0,
-      saturation: 0,
-      blur: 0,
-    },
-  });
-
-  // Handlers
-  const handleImageSelect = useCallback(
-    (imageData: {
-      src: string;
-      width: number;
-      height: number;
-      file?: File;
-    }) => {
-      setOriginalImage(imageData);
-      setCroppedImage(null);
-      setEditorData({
-        image: null,
-        stickers: [],
-        cropArea: null,
-        backgroundSettings: {
-          scale: 0,
-          rotation: 0,
-          offsetX: 0,
-          offsetY: 0,
-          opacity: 0,
-          brightness: 0,
-          contrast: 0,
-          saturation: 0,
-          blur: 0,
-        },
-      });
-    },
-    []
-  );
-
-  const handleCropComplete = useCallback(
-    (croppedImageSrc: string, cropData: CropArea) => {
-      setCroppedImage({
-        src: croppedImageSrc,
-        cropData,
-      });
-    },
-    []
-  );
-
-  const handleCanvasPreset = useCallback(
-    (preset: { width: number; height: number }) => {
-      setCanvasSize(preset);
-    },
-    []
-  );
-
-  const currentImageSrc = croppedImage?.src || originalImage?.src;
+  const handleCancel = () => {
+    setSelectedImage(null)
+    setActiveTab("upload")
+  }
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        backgroundColor: "#f8f9fa",
-        padding: "20px",
-      }}
-    >
-      <div style={{ maxWidth: "1400px", margin: "0 auto" }}>
-        {/* Header */}
-        <div style={{ textAlign: "center", marginBottom: "32px" }}>
-          <h1
-            style={{
-              fontSize: "36px",
-              fontWeight: "bold",
-              color: "#212529",
-              marginBottom: "8px",
-            }}
-          >
-            📱 React Image Editor
-          </h1>
-          <p style={{ fontSize: "18px", color: "#6c757d" }}>
-            Nahrajte obrázok, upravte ho a pridajte stickers, text, mentions a
-            lokácie
-          </p>
-        </div>
+    <div className="min-h-screen bg-gray-50 p-4">
+      <div className="max-w-6xl mx-auto">
+        <h1 className="text-3xl font-bold text-center mb-8">Enhanced Image Editor</h1>
 
-        {/* Main Layout */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "350px 1fr",
-            gap: "24px",
-          }}
-        >
-          {/* Left Sidebar */}
-          <div
-            style={{ display: "flex", flexDirection: "column", gap: "20px" }}
-          >
-            {/* Section 1: Image Upload */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="upload">Upload</TabsTrigger>
+            <TabsTrigger value="editor" disabled={!selectedImage}>
+              Basic Editor
+            </TabsTrigger>
+            <TabsTrigger value="instagram" disabled={!selectedImage}>
+              Instagram Editor
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="upload" className="mt-6">
             <Card>
               <CardHeader>
-                <CardTitle style={{ fontSize: "18px" }}>
-                  📁 1. Nahrať obrázok
-                </CardTitle>
+                <CardTitle>Upload Image</CardTitle>
               </CardHeader>
               <CardContent>
-                <ImageUpload onImageSelect={handleImageSelect} />
-                {originalImage && (
-                  <div
-                    style={{
-                      marginTop: "12px",
-                      fontSize: "14px",
-                      color: "#6c757d",
-                      textAlign: "center",
-                    }}
-                  >
-                    Originál: {originalImage.width} × {originalImage.height}px
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Section 2: Background Controls */}
-            {originalImage && (
-              <BackgroundControls
-                settings={backgroundSettings}
-                onSettingsChange={setBackgroundSettings}
-              />
-            )}
-
-            {/* Canvas Size Controls */}
-            <Card>
-              <CardHeader>
-                <CardTitle style={{ fontSize: "18px" }}>
-                  📐 Veľkosť plátna
-                </CardTitle>
-              </CardHeader>
-              <CardContent
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "16px",
-                }}
-              >
-                {/* Presets */}
-                <div>
-                  <label
-                    style={{
-                      display: "block",
-                      marginBottom: "8px",
-                      fontSize: "14px",
-                      fontWeight: "500",
-                    }}
-                  >
-                    Prednastavenia:
-                  </label>
-                  <div
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "6px",
-                    }}
-                  >
-                    {CANVAS_PRESETS.map((preset, index) => {
-                      const Icon = preset.icon;
-                      return (
-                        <Button
-                          key={index}
-                          variant={
-                            canvasSize.width === preset.width &&
-                            canvasSize.height === preset.height
-                              ? "default"
-                              : "outline"
-                          }
-                          size="sm"
-                          style={{ justifyContent: "flex-start" }}
-                          onClick={() => handleCanvasPreset(preset)}
-                        >
-                          <Icon size={16} style={{ marginRight: "8px" }} />
-                          <div style={{ textAlign: "left" }}>
-                            <div style={{ fontSize: "12px" }}>
-                              {preset.name}
-                            </div>
-                            <div style={{ fontSize: "10px", opacity: 0.7 }}>
-                              {preset.width} × {preset.height}
-                            </div>
-                          </div>
-                        </Button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Custom Size */}
-                <div>
-                  <label
-                    style={{
-                      display: "block",
-                      marginBottom: "6px",
-                      fontSize: "14px",
-                      fontWeight: "500",
-                    }}
-                  >
-                    Šírka: {canvasSize.width}px
-                  </label>
-                  <Slider
-                    value={[canvasSize.width]}
-                    onValueChange={(value) =>
-                      setCanvasSize((prev) => ({ ...prev, width: value[0] }))
-                    }
-                    min={200}
-                    max={800}
-                    step={10}
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                    id="image-upload"
                   />
-                </div>
-                <div>
-                  <label
-                    style={{
-                      display: "block",
-                      marginBottom: "6px",
-                      fontSize: "14px",
-                      fontWeight: "500",
-                    }}
-                  >
-                    Výška: {canvasSize.height}px
-                  </label>
-                  <Slider
-                    value={[canvasSize.height]}
-                    onValueChange={(value) =>
-                      setCanvasSize((prev) => ({ ...prev, height: value[0] }))
-                    }
-                    min={200}
-                    max={800}
-                    step={10}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Right Content */}
-          <div
-            style={{ display: "flex", flexDirection: "column", gap: "20px" }}
-          >
-            {/* Section 3: Crop & Editor */}
-            {originalImage && (
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: "20px",
-                }}
-              >
-                {/* Crop */}
-                <ImageCropper
-                  imageSrc={originalImage.src}
-                  imageWidth={originalImage.width}
-                  imageHeight={originalImage.height}
-                  onCropComplete={handleCropComplete}
-                />
-
-                {/* Preview */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle style={{ fontSize: "18px" }}>
-                      👁️ Preview
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent
-                    style={{
-                      display: "flex",
-                      justifyContent: "center",
-                      alignItems: "center",
-                      minHeight: "250px",
-                    }}
-                  >
-                    {currentImageSrc ? (
-                      <img
-                        src={currentImageSrc || "/placeholder.svg"}
-                        alt="Preview"
-                        style={{
-                          maxWidth: "100%",
-                          maxHeight: "250px",
-                          objectFit: "contain",
-                          border: "1px solid #e9ecef",
-                          borderRadius: "4px",
-                        }}
-                      />
-                    ) : (
-                      <div style={{ textAlign: "center", color: "#6c757d" }}>
-                        <p>Nahrajte obrázok pre preview</p>
+                  <label htmlFor="image-upload" className="cursor-pointer">
+                    <div className="space-y-4">
+                      <div className="text-4xl">📸</div>
+                      <div>
+                        <p className="text-lg font-medium">Click to upload an image</p>
+                        <p className="text-sm text-gray-500">PNG, JPG, GIF up to 10MB</p>
                       </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
-            )}
+                      <Button>Choose File</Button>
+                    </div>
+                  </label>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-            {/* Image Editor */}
-            {currentImageSrc && (
-              <ImageEditor
-                backgroundSettings={backgroundSettings}
-                canvasSize={canvasSize}
-                onStateChange={setEditorData}
-              />
+          <TabsContent value="editor" className="mt-6">
+            {selectedImage && (
+              <Card className="h-[600px]">
+                <CardContent className="p-0 h-full">
+                  <ImageEditor imageSrc={selectedImage} onSave={handleSave} onCancel={handleCancel} />
+                </CardContent>
+              </Card>
             )}
-          </div>
-        </div>
+          </TabsContent>
+
+          <TabsContent value="instagram" className="mt-6">
+            {selectedImage && (
+              <Card className="h-[600px]">
+                <CardContent className="p-0 h-full">
+                  <InstagramEditor imageSrc={selectedImage} onSave={handleSave} onCancel={handleCancel} />
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
-  );
+  )
 }
 
-export default App;
+export default App

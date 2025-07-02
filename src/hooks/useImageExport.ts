@@ -2,7 +2,23 @@
 
 import { useCallback } from "react"
 import type { ImageEditorData } from "../types"
-import type { CanvasCropData } from "./useCanvasCrop"
+import type { AspectRatioType } from "../types"
+
+interface Crop {
+  unit: string
+  x: number
+  y: number
+  width: number
+  height: number
+}
+
+interface UseImageExportProps {
+  imageSrc: string
+  crop: Crop
+  zoom: number
+  rotation: number
+  aspect: AspectRatioType
+}
 
 export interface ExportOptions {
   format: "png" | "jpeg" | "webp"
@@ -23,10 +39,9 @@ export interface ExportResult {
   interactiveData: ImageEditorData
 }
 
-export const useImageExport = () => {
+export const useImageExport = ({ imageSrc, crop, zoom, rotation, aspect }: UseImageExportProps) => {
   const exportToCanvas = useCallback(
     async (
-      imageSrc: string,
       data: ImageEditorData,
       editorWidth: number,
       editorHeight: number,
@@ -37,7 +52,6 @@ export const useImageExport = () => {
         antiAlias: true,
         textQuality: "high",
       },
-      cropData?: CanvasCropData,
       originalImageWidth?: number,
       originalImageHeight?: number,
     ): Promise<HTMLCanvasElement> => {
@@ -85,42 +99,26 @@ export const useImageExport = () => {
       ctx.imageSmoothingEnabled = true
       ctx.imageSmoothingQuality = "high"
 
-      if (cropData) {
-        // S crop data - použij COVER source rozmery
-        ctx.drawImage(
-          baseImage,
-          cropData.sourceX, // source x (COVER pozícia)
-          cropData.sourceY, // source y (COVER pozícia)
-          cropData.sourceWidth, // source width (COVER rozmery)
-          cropData.sourceHeight, // source height (COVER rozmery)
-          0, // dest x
-          0, // dest y
-          finalWidth, // dest width
-          finalHeight, // dest height
-        )
+      const imageAspect = baseImage.naturalWidth / baseImage.naturalHeight
+      const targetAspect = finalWidth / finalHeight
+
+      let sourceX, sourceY, sourceWidth, sourceHeight
+
+      if (imageAspect > targetAspect) {
+        // Obrázok je širší - škáluj podľa výšky
+        sourceHeight = baseImage.naturalHeight
+        sourceWidth = sourceHeight * targetAspect
+        sourceX = (baseImage.naturalWidth - sourceWidth) / 2
+        sourceY = 0
       } else {
-        // Bez crop - COVER správanie
-        const imageAspect = baseImage.naturalWidth / baseImage.naturalHeight
-        const targetAspect = finalWidth / finalHeight
-
-        let sourceX, sourceY, sourceWidth, sourceHeight
-
-        if (imageAspect > targetAspect) {
-          // Obrázok je širší - škáluj podľa výšky
-          sourceHeight = baseImage.naturalHeight
-          sourceWidth = sourceHeight * targetAspect
-          sourceX = (baseImage.naturalWidth - sourceWidth) / 2
-          sourceY = 0
-        } else {
-          // Obrázok je vyšší - škáluj podľa šírky
-          sourceWidth = baseImage.naturalWidth
-          sourceHeight = sourceWidth / targetAspect
-          sourceX = 0
-          sourceY = (baseImage.naturalHeight - sourceHeight) / 2
-        }
-
-        ctx.drawImage(baseImage, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, finalWidth, finalHeight)
+        // Obrázok je vyšší - škáluj podľa šírky
+        sourceWidth = baseImage.naturalWidth
+        sourceHeight = sourceWidth / targetAspect
+        sourceX = 0
+        sourceY = (baseImage.naturalHeight - sourceHeight) / 2
       }
+
+      ctx.drawImage(baseImage, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, finalWidth, finalHeight)
       ctx.restore()
 
       // Helper functions
@@ -159,8 +157,8 @@ export const useImageExport = () => {
       for (const sticker of data.stickers) {
         // Pozície sú v absolútnych súradniciach obrázka
         // Preveď na relatívne k crop oblasti
-        const relativeX = sticker.position.x - (cropData?.sourceX || 0)
-        const relativeY = sticker.position.y - (cropData?.sourceY || 0)
+        const relativeX = sticker.position.x - crop.x
+        const relativeY = sticker.position.y - crop.y
 
         // Škáluj na finálne rozmery
         const x = relativeX * scaleX
@@ -272,8 +270,8 @@ export const useImageExport = () => {
 
       // Draw mentions (rovnako ako stickers)
       for (const mention of data.mentions) {
-        const relativeX = mention.position.x - (cropData?.sourceX || 0)
-        const relativeY = mention.position.y - (cropData?.sourceY || 0)
+        const relativeX = mention.position.x - crop.x
+        const relativeY = mention.position.y - crop.y
 
         const x = relativeX * scaleX
         const y = relativeY * scaleY
@@ -305,8 +303,8 @@ export const useImageExport = () => {
 
       // Draw locations (rovnako ako stickers)
       for (const location of data.locations) {
-        const relativeX = location.position.x - (cropData?.sourceX || 0)
-        const relativeY = location.position.y - (cropData?.sourceY || 0)
+        const relativeX = location.position.x - crop.x
+        const relativeY = location.position.y - crop.y
 
         const x = relativeX * scaleX
         const y = relativeY * scaleY
@@ -347,22 +345,18 @@ export const useImageExport = () => {
 
   const exportToBlob = useCallback(
     async (
-      imageSrc: string,
       data: ImageEditorData,
       editorWidth: number,
       editorHeight: number,
       options: ExportOptions = { format: "png", quality: 0.95, pixelRatio: 1 },
-      cropData?: CanvasCropData,
       originalImageWidth?: number,
       originalImageHeight?: number,
     ): Promise<Blob> => {
       const canvas = await exportToCanvas(
-        imageSrc,
         data,
         editorWidth,
         editorHeight,
         options,
-        cropData,
         originalImageWidth,
         originalImageHeight,
       )
@@ -380,26 +374,15 @@ export const useImageExport = () => {
 
   const exportToFile = useCallback(
     async (
-      imageSrc: string,
       data: ImageEditorData,
       editorWidth: number,
       editorHeight: number,
       filename: string,
       options: ExportOptions = { format: "png", quality: 0.95, pixelRatio: 1 },
-      cropData?: CanvasCropData,
       originalImageWidth?: number,
       originalImageHeight?: number,
     ): Promise<File> => {
-      const blob = await exportToBlob(
-        imageSrc,
-        data,
-        editorWidth,
-        editorHeight,
-        options,
-        cropData,
-        originalImageWidth,
-        originalImageHeight,
-      )
+      const blob = await exportToBlob(data, editorWidth, editorHeight, options, originalImageWidth, originalImageHeight)
       return new File([blob], filename, { type: blob.type })
     },
     [exportToBlob],
@@ -407,23 +390,19 @@ export const useImageExport = () => {
 
   const exportComplete = useCallback(
     async (
-      imageSrc: string,
       data: ImageEditorData,
       editorWidth: number,
       editorHeight: number,
       filename: string,
       options: ExportOptions = { format: "png", quality: 0.95, pixelRatio: 1 },
-      cropData?: CanvasCropData,
       originalImageWidth?: number,
       originalImageHeight?: number,
     ): Promise<ExportResult> => {
       const canvas = await exportToCanvas(
-        imageSrc,
         data,
         editorWidth,
         editorHeight,
         options,
-        cropData,
         originalImageWidth,
         originalImageHeight,
       )
@@ -431,16 +410,7 @@ export const useImageExport = () => {
         `image/${options.format}`,
         options.format === "png" ? undefined : options.quality,
       )
-      const blob = await exportToBlob(
-        imageSrc,
-        data,
-        editorWidth,
-        editorHeight,
-        options,
-        cropData,
-        originalImageWidth,
-        originalImageHeight,
-      )
+      const blob = await exportToBlob(data, editorWidth, editorHeight, options, originalImageWidth, originalImageHeight)
       const file = new File([blob], filename, { type: blob.type })
 
       return {
@@ -456,23 +426,19 @@ export const useImageExport = () => {
 
   const downloadImage = useCallback(
     async (
-      imageSrc: string,
       data: ImageEditorData,
       editorWidth: number,
       editorHeight: number,
       filename: string,
       options: ExportOptions = { format: "png", quality: 0.95, pixelRatio: 1 },
-      cropData?: CanvasCropData,
       originalImageWidth?: number,
       originalImageHeight?: number,
     ) => {
       const canvas = await exportToCanvas(
-        imageSrc,
         data,
         editorWidth,
         editorHeight,
         options,
-        cropData,
         originalImageWidth,
         originalImageHeight,
       )
@@ -488,11 +454,27 @@ export const useImageExport = () => {
     [exportToCanvas],
   )
 
+  const exportImage = useCallback(
+    async (canvas: HTMLCanvasElement, width: number, height: number): Promise<Blob | null> => {
+      return new Promise((resolve) => {
+        canvas.toBlob(
+          (blob) => {
+            resolve(blob)
+          },
+          "image/png",
+          1.0,
+        )
+      })
+    },
+    [],
+  )
+
   return {
     exportToCanvas,
     exportToBlob,
     exportToFile,
     exportComplete,
     downloadImage,
+    exportImage,
   }
 }
