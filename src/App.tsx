@@ -1,15 +1,21 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState, useRef, useCallback, useEffect } from "react"
-import { Button } from "./components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "./components/ui/card"
-import { Slider } from "./components/ui/slider"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./components/ui/select"
-import { Input } from "./components/ui/input"
-import { Label } from "./components/ui/label"
-import { Separator } from "./components/ui/separator"
-import { Badge } from "./components/ui/badge"
+import type React from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
+import { Button } from "./components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "./components/ui/card";
+import { Slider } from "./components/ui/slider";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./components/ui/select";
+import { Input } from "./components/ui/input";
+import { Label } from "./components/ui/label";
+import { Separator } from "./components/ui/separator";
+import { Badge } from "./components/ui/badge";
 import {
   Upload,
   Download,
@@ -26,138 +32,216 @@ import {
   Smartphone,
   Monitor,
   X,
-} from "lucide-react"
-import "./styles/globals.css"
+} from "lucide-react";
+import "../styles/globals.css";
 
 interface CropArea {
-  x: number
-  y: number
-  width: number
-  height: number
+  x: number;
+  y: number;
+  width: number;
+  height: number;
 }
 
 interface StickerItem {
-  id: string
-  type: "sticker" | "mention" | "location" | "custom-image"
-  content: string
-  x: number
-  y: number
-  width: number
-  height: number
-  rotation: number
-  emoji?: string
-  username?: string
-  locationName?: string
-  imageSrc?: string
+  id: string;
+  type: "sticker" | "mention" | "location" | "custom-image";
+  content: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  rotation: number;
+  emoji?: string;
+  username?: string;
+  locationName?: string;
+  imageSrc?: string;
 }
 
 interface CanvasPreset {
-  name: string
-  width: number
-  height: number
-  icon: React.ComponentType<{ size?: number }>
-  platform: string
+  name: string;
+  width: number;
+  height: number;
+  icon: React.ComponentType<{ size?: string | number }>;
+  platform: string;
 }
 
 const CANVAS_PRESETS: CanvasPreset[] = [
-  { name: "Instagram Post", width: 1080, height: 1080, icon: Instagram, platform: "Instagram" },
-  { name: "Instagram Story", width: 1080, height: 1920, icon: Smartphone, platform: "Instagram" },
-  { name: "YouTube Thumbnail", width: 1280, height: 720, icon: Youtube, platform: "YouTube" },
-  { name: "Twitter Post", width: 1200, height: 675, icon: Twitter, platform: "Twitter" },
-  { name: "Facebook Post", width: 1200, height: 630, icon: Facebook, platform: "Facebook" },
+  {
+    name: "Instagram Post",
+    width: 1080,
+    height: 1080,
+    icon: Instagram,
+    platform: "Instagram",
+  },
+  {
+    name: "Instagram Story",
+    width: 1080,
+    height: 1920,
+    icon: Smartphone,
+    platform: "Instagram",
+  },
+  {
+    name: "YouTube Thumbnail",
+    width: 1280,
+    height: 720,
+    icon: Youtube,
+    platform: "YouTube",
+  },
+  {
+    name: "Twitter Post",
+    width: 1200,
+    height: 675,
+    icon: Twitter,
+    platform: "Twitter",
+  },
+  {
+    name: "Facebook Post",
+    width: 1200,
+    height: 630,
+    icon: Facebook,
+    platform: "Facebook",
+  },
   { name: "Square", width: 800, height: 800, icon: Square, platform: "Custom" },
-  { name: "Landscape", width: 1200, height: 800, icon: Monitor, platform: "Custom" },
-  { name: "Portrait", width: 800, height: 1200, icon: Smartphone, platform: "Custom" },
-]
+  {
+    name: "Landscape",
+    width: 1200,
+    height: 800,
+    icon: Monitor,
+    platform: "Custom",
+  },
+  {
+    name: "Portrait",
+    width: 800,
+    height: 1200,
+    icon: Smartphone,
+    platform: "Custom",
+  },
+];
 
-const STICKER_EMOJIS = ["😀", "😂", "❤️", "👍", "🔥", "✨", "🎉", "💯", "🚀", "⭐", "🌟", "💫", "🎯", "💪", "👏", "🙌"]
+const STICKER_EMOJIS = [
+  "😀",
+  "😂",
+  "❤️",
+  "👍",
+  "🔥",
+  "✨",
+  "🎉",
+  "💯",
+  "🚀",
+  "⭐",
+  "🌟",
+  "💫",
+  "🎯",
+  "💪",
+  "👏",
+  "🙌",
+];
 
 function App() {
   // === SEKCIA 1: NAHRANIE OBRAZKA ===
-  const [originalImage, setOriginalImage] = useState<string | null>(null)
-  const [imageFile, setImageFile] = useState<File | null>(null)
-  const [imageDimensions, setImageDimensions] = useState({ width: 0, height: 0 })
+  const [originalImage, setOriginalImage] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageDimensions, setImageDimensions] = useState({
+    width: 0,
+    height: 0,
+  });
 
   // === SEKCIA 2: CROP A EDITACIA ===
-  const [cropArea, setCropArea] = useState<CropArea>({ x: 0, y: 0, width: 400, height: 400 })
-  const [canvasSize, setCanvasSize] = useState({ width: 1080, height: 1080 })
-  const [selectedPreset, setSelectedPreset] = useState<string>("Instagram Post")
-  const [stickers, setStickers] = useState<StickerItem[]>([])
-  const [selectedSticker, setSelectedSticker] = useState<string | null>(null)
-  const [showTooltip, setShowTooltip] = useState<{ id: string; x: number; y: number } | null>(null)
-  const [isDragging, setIsDragging] = useState(false)
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
+  const [cropArea, setCropArea] = useState<CropArea>({
+    x: 0,
+    y: 0,
+    width: 400,
+    height: 400,
+  });
+  const [canvasSize, setCanvasSize] = useState({ width: 1080, height: 1080 });
+  const [selectedPreset, setSelectedPreset] =
+    useState<string>("Instagram Post");
+  const [stickers, setStickers] = useState<StickerItem[]>([]);
+  const [selectedSticker, setSelectedSticker] = useState<string | null>(null);
+  const [showTooltip, setShowTooltip] = useState<{
+    id: string;
+    x: number;
+    y: number;
+  } | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
   // === SEKCIA 3: PREVIEW A EXPORT ===
-  const [previewImage, setPreviewImage] = useState<string | null>(null)
-  const [isExporting, setIsExporting] = useState(false)
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
 
   // Refs
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-  const cropCanvasRef = useRef<HTMLCanvasElement>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const cropCanvasRef = useRef<HTMLCanvasElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // === SEKCIA 1: NAHRANIE OBRAZKA ===
-  const handleImageUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (file && file.type.startsWith("image/")) {
-      setImageFile(file)
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        const img = new Image()
-        img.onload = () => {
-          setOriginalImage(e.target?.result as string)
-          setImageDimensions({ width: img.width, height: img.height })
+  const handleImageUpload = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (file && file.type.startsWith("image/")) {
+        setImageFile(file);
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            setOriginalImage(e.target?.result as string);
+            setImageDimensions({ width: img.width, height: img.height });
 
-          // Nastavenie defaultného crop area na stred obrazka
-          const defaultSize = Math.min(img.width, img.height, 400)
-          setCropArea({
-            x: (img.width - defaultSize) / 2,
-            y: (img.height - defaultSize) / 2,
-            width: defaultSize,
-            height: defaultSize,
-          })
-        }
-        img.src = e.target?.result as string
+            // Nastavenie defaultného crop area na stred obrazka
+            const defaultSize = Math.min(img.width, img.height, 400);
+            setCropArea({
+              x: (img.width - defaultSize) / 2,
+              y: (img.height - defaultSize) / 2,
+              width: defaultSize,
+              height: defaultSize,
+            });
+          };
+          img.src = e.target?.result as string;
+        };
+        reader.readAsDataURL(file);
       }
-      reader.readAsDataURL(file)
-    }
-  }, [])
+    },
+    []
+  );
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-  }, [])
+    e.preventDefault();
+  }, []);
 
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
-      e.preventDefault()
-      const files = Array.from(e.dataTransfer.files)
-      const imageFile = files.find((file) => file.type.startsWith("image/"))
+      e.preventDefault();
+      const files = Array.from(e.dataTransfer.files);
+      const imageFile = files.find((file) => file.type.startsWith("image/"));
       if (imageFile) {
         const fakeEvent = {
           target: { files: [imageFile] },
-        } as React.ChangeEvent<HTMLInputElement>
-        handleImageUpload(fakeEvent)
+        } as unknown as React.ChangeEvent<HTMLInputElement>;
+        handleImageUpload(fakeEvent);
       }
     },
-    [handleImageUpload],
-  )
+    [handleImageUpload]
+  );
 
   // === SEKCIA 2: CROP A EDITACIA ===
   const handlePresetChange = useCallback((presetName: string) => {
-    const preset = CANVAS_PRESETS.find((p) => p.name === presetName)
+    const preset = CANVAS_PRESETS.find((p) => p.name === presetName);
     if (preset) {
-      setSelectedPreset(presetName)
-      setCanvasSize({ width: preset.width, height: preset.height })
+      setSelectedPreset(presetName);
+      setCanvasSize({ width: preset.width, height: preset.height });
     }
-  }, [])
+  }, []);
 
-  const handleCropChange = useCallback((property: keyof CropArea, value: number) => {
-    setCropArea((prev) => ({
-      ...prev,
-      [property]: Math.max(0, value),
-    }))
-  }, [])
+  const handleCropChange = useCallback(
+    (property: keyof CropArea, value: number) => {
+      setCropArea((prev) => ({
+        ...prev,
+        [property]: Math.max(0, value),
+      }));
+    },
+    []
+  );
 
   const addSticker = useCallback(
     (type: StickerItem["type"], content: string, extra?: any) => {
@@ -171,149 +255,189 @@ function App() {
         height: 100,
         rotation: 0,
         ...extra,
-      }
-      setStickers((prev) => [...prev, newSticker])
+      };
+      setStickers((prev) => [...prev, newSticker]);
     },
-    [canvasSize],
-  )
+    [canvasSize]
+  );
 
-  const updateSticker = useCallback((id: string, updates: Partial<StickerItem>) => {
-    setStickers((prev) => prev.map((sticker) => (sticker.id === id ? { ...sticker, ...updates } : sticker)))
-  }, [])
+  const updateSticker = useCallback(
+    (id: string, updates: Partial<StickerItem>) => {
+      setStickers((prev) =>
+        prev.map((sticker) =>
+          sticker.id === id ? { ...sticker, ...updates } : sticker
+        )
+      );
+    },
+    []
+  );
 
   const removeSticker = useCallback((id: string) => {
-    setStickers((prev) => prev.filter((sticker) => sticker.id !== id))
-    setSelectedSticker(null)
-    setShowTooltip(null)
-  }, [])
+    setStickers((prev) => prev.filter((sticker) => sticker.id !== id));
+    setSelectedSticker(null);
+    setShowTooltip(null);
+  }, []);
 
-  const handleStickerClick = useCallback((sticker: StickerItem, event: React.MouseEvent) => {
-    event.stopPropagation()
-    setSelectedSticker(sticker.id)
-    setShowTooltip({
-      id: sticker.id,
-      x: event.clientX,
-      y: event.clientY,
-    })
-  }, [])
+  const handleStickerClick = useCallback(
+    (sticker: StickerItem, event: React.MouseEvent) => {
+      event.stopPropagation();
+      setSelectedSticker(sticker.id);
+      setShowTooltip({
+        id: sticker.id,
+        x: event.clientX,
+        y: event.clientY,
+      });
+    },
+    []
+  );
 
-  const handleStickerMouseDown = useCallback((sticker: StickerItem, event: React.MouseEvent) => {
-    event.preventDefault()
-    setIsDragging(true)
-    setSelectedSticker(sticker.id)
-    const rect = event.currentTarget.getBoundingClientRect()
-    setDragOffset({
-      x: event.clientX - rect.left,
-      y: event.clientY - rect.top,
-    })
-  }, [])
+  const handleStickerMouseDown = useCallback(
+    (sticker: StickerItem, event: React.MouseEvent) => {
+      event.preventDefault();
+      setIsDragging(true);
+      setSelectedSticker(sticker.id);
+      const rect = event.currentTarget.getBoundingClientRect();
+      setDragOffset({
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top,
+      });
+    },
+    []
+  );
 
   const handleMouseMove = useCallback(
     (event: React.MouseEvent) => {
       if (isDragging && selectedSticker) {
-        const canvas = canvasRef.current
+        const canvas = canvasRef.current;
         if (canvas) {
-          const rect = canvas.getBoundingClientRect()
-          const x = event.clientX - rect.left - dragOffset.x
-          const y = event.clientY - rect.top - dragOffset.y
-          updateSticker(selectedSticker, { x, y })
+          const rect = canvas.getBoundingClientRect();
+          const x = event.clientX - rect.left - dragOffset.x;
+          const y = event.clientY - rect.top - dragOffset.y;
+          updateSticker(selectedSticker, { x, y });
         }
       }
     },
-    [isDragging, selectedSticker, dragOffset, updateSticker],
-  )
+    [isDragging, selectedSticker, dragOffset, updateSticker]
+  );
 
   const handleMouseUp = useCallback(() => {
-    setIsDragging(false)
-  }, [])
+    setIsDragging(false);
+  }, []);
 
   // === SEKCIA 3: PREVIEW A EXPORT ===
   const generatePreview = useCallback(async () => {
-    if (!originalImage || !canvasRef.current) return
+    if (!originalImage || !canvasRef.current) return;
 
-    const canvas = canvasRef.current
-    const ctx = canvas.getContext("2d")
-    if (!ctx) return
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
 
-    canvas.width = canvasSize.width
-    canvas.height = canvasSize.height
+    canvas.width = canvasSize.width;
+    canvas.height = canvasSize.height;
 
     // Vyčistenie canvasu
-    ctx.fillStyle = "#ffffff"
-    ctx.fillRect(0, 0, canvas.width, canvas.height)
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // Nakreslenie orezaného obrazka
-    const img = new Image()
+    const img = new Image();
     img.onload = () => {
-      ctx.drawImage(img, cropArea.x, cropArea.y, cropArea.width, cropArea.height, 0, 0, canvas.width, canvas.height)
+      ctx.drawImage(
+        img,
+        cropArea.x,
+        cropArea.y,
+        cropArea.width,
+        cropArea.height,
+        0,
+        0,
+        canvas.width,
+        canvas.height
+      );
 
       // Nakreslenie stickerov
       stickers.forEach((sticker) => {
-        ctx.save()
-        ctx.translate(sticker.x + sticker.width / 2, sticker.y + sticker.height / 2)
-        ctx.rotate((sticker.rotation * Math.PI) / 180)
+        ctx.save();
+        ctx.translate(
+          sticker.x + sticker.width / 2,
+          sticker.y + sticker.height / 2
+        );
+        ctx.rotate((sticker.rotation * Math.PI) / 180);
 
         if (sticker.type === "sticker" && sticker.emoji) {
-          ctx.font = `${sticker.height}px Arial`
-          ctx.textAlign = "center"
-          ctx.textBaseline = "middle"
-          ctx.fillText(sticker.emoji, 0, 0)
+          ctx.font = `${sticker.height}px Arial`;
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(sticker.emoji, 0, 0);
         } else if (sticker.type === "mention" && sticker.username) {
-          ctx.fillStyle = "#1DA1F2"
-          ctx.fillRect(-sticker.width / 2, -sticker.height / 2, sticker.width, sticker.height)
-          ctx.fillStyle = "white"
-          ctx.font = `${sticker.height / 3}px Arial`
-          ctx.textAlign = "center"
-          ctx.textBaseline = "middle"
-          ctx.fillText(`@${sticker.username}`, 0, 0)
+          ctx.fillStyle = "#1DA1F2";
+          ctx.fillRect(
+            -sticker.width / 2,
+            -sticker.height / 2,
+            sticker.width,
+            sticker.height
+          );
+          ctx.fillStyle = "white";
+          ctx.font = `${sticker.height / 3}px Arial`;
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(`@${sticker.username}`, 0, 0);
         } else if (sticker.type === "location" && sticker.locationName) {
-          ctx.fillStyle = "#FF6B6B"
-          ctx.fillRect(-sticker.width / 2, -sticker.height / 2, sticker.width, sticker.height)
-          ctx.fillStyle = "white"
-          ctx.font = `${sticker.height / 4}px Arial`
-          ctx.textAlign = "center"
-          ctx.textBaseline = "middle"
-          ctx.fillText(`📍 ${sticker.locationName}`, 0, 0)
+          ctx.fillStyle = "#FF6B6B";
+          ctx.fillRect(
+            -sticker.width / 2,
+            -sticker.height / 2,
+            sticker.width,
+            sticker.height
+          );
+          ctx.fillStyle = "white";
+          ctx.font = `${sticker.height / 4}px Arial`;
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(`📍 ${sticker.locationName}`, 0, 0);
         }
 
-        ctx.restore()
-      })
+        ctx.restore();
+      });
 
       // Vytvorenie preview
-      setPreviewImage(canvas.toDataURL("image/png"))
-    }
-    img.src = originalImage
-  }, [originalImage, canvasSize, cropArea, stickers])
+      setPreviewImage(canvas.toDataURL("image/png"));
+    };
+    img.src = originalImage;
+  }, [originalImage, canvasSize, cropArea, stickers]);
 
   const handleDownload = useCallback(async () => {
-    if (!previewImage) return
+    if (!previewImage) return;
 
-    setIsExporting(true)
+    setIsExporting(true);
     try {
-      const link = document.createElement("a")
-      link.download = `edited-image-${Date.now()}.png`
-      link.href = previewImage
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
+      const link = document.createElement("a");
+      link.download = `edited-image-${Date.now()}.png`;
+      link.href = previewImage;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     } finally {
-      setIsExporting(false)
+      setIsExporting(false);
     }
-  }, [previewImage])
+  }, [previewImage]);
 
   // Automatické generovanie preview pri zmene
   useEffect(() => {
     if (originalImage) {
-      generatePreview()
+      generatePreview();
     }
-  }, [generatePreview, originalImage])
+  }, [generatePreview, originalImage]);
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">🎨 Enhanced Image Editor</h1>
-          <p className="text-lg text-gray-600">Nahrajte obrázok, upravte ho a pridajte stickers, mentions a lokácie</p>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+            🎨 Enhanced Image Editor
+          </h1>
+          <p className="text-lg text-gray-600">
+            Nahrajte obrázok, upravte ho a pridajte stickers, mentions a lokácie
+          </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -341,14 +465,17 @@ function App() {
                     className="hidden"
                   />
                   <Upload className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                  <p className="text-lg font-medium mb-2">Kliknite alebo pretiahnite obrázok</p>
+                  <p className="text-lg font-medium mb-2">
+                    Kliknite alebo pretiahnite obrázok
+                  </p>
                   <p className="text-sm text-gray-500">PNG, JPG, GIF do 10MB</p>
                 </div>
 
                 {originalImage && (
                   <div className="mt-4 p-3 bg-green-50 rounded-lg">
                     <p className="text-sm text-green-700">
-                      ✅ Obrázok nahraný: {imageDimensions.width} × {imageDimensions.height}px
+                      ✅ Obrázok nahraný: {imageDimensions.width} ×{" "}
+                      {imageDimensions.height}px
                     </p>
                   </div>
                 )}
@@ -367,13 +494,16 @@ function App() {
                 <CardContent className="space-y-4">
                   <div>
                     <Label>Prednastavené veľkosti</Label>
-                    <Select value={selectedPreset} onValueChange={handlePresetChange}>
+                    <Select
+                      value={selectedPreset}
+                      onValueChange={handlePresetChange}
+                    >
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
                         {CANVAS_PRESETS.map((preset) => {
-                          const Icon = preset.icon
+                          const Icon = preset.icon;
                           return (
                             <SelectItem key={preset.name} value={preset.name}>
                               <div className="flex items-center gap-2">
@@ -384,7 +514,7 @@ function App() {
                                 </Badge>
                               </div>
                             </SelectItem>
-                          )
+                          );
                         })}
                       </SelectContent>
                     </Select>
@@ -397,7 +527,9 @@ function App() {
                       <Label>X pozícia: {cropArea.x}</Label>
                       <Slider
                         value={[cropArea.x]}
-                        onValueChange={([value]) => handleCropChange("x", value)}
+                        onValueChange={([value]) =>
+                          handleCropChange("x", value)
+                        }
                         max={imageDimensions.width - cropArea.width}
                         step={1}
                       />
@@ -406,7 +538,9 @@ function App() {
                       <Label>Y pozícia: {cropArea.y}</Label>
                       <Slider
                         value={[cropArea.y]}
-                        onValueChange={([value]) => handleCropChange("y", value)}
+                        onValueChange={([value]) =>
+                          handleCropChange("y", value)
+                        }
                         max={imageDimensions.height - cropArea.height}
                         step={1}
                       />
@@ -415,7 +549,9 @@ function App() {
                       <Label>Šírka: {cropArea.width}</Label>
                       <Slider
                         value={[cropArea.width]}
-                        onValueChange={([value]) => handleCropChange("width", value)}
+                        onValueChange={([value]) =>
+                          handleCropChange("width", value)
+                        }
                         min={50}
                         max={imageDimensions.width}
                         step={1}
@@ -425,7 +561,9 @@ function App() {
                       <Label>Výška: {cropArea.height}</Label>
                       <Slider
                         value={[cropArea.height]}
-                        onValueChange={([value]) => handleCropChange("height", value)}
+                        onValueChange={([value]) =>
+                          handleCropChange("height", value)
+                        }
                         min={50}
                         max={imageDimensions.height}
                         step={1}
@@ -455,7 +593,9 @@ function App() {
                           key={emoji}
                           variant="outline"
                           size="sm"
-                          onClick={() => addSticker("sticker", emoji, { emoji })}
+                          onClick={() =>
+                            addSticker("sticker", emoji, { emoji })
+                          }
                           className="text-lg"
                         >
                           {emoji}
@@ -474,10 +614,12 @@ function App() {
                         placeholder="Používateľské meno"
                         onKeyDown={(e) => {
                           if (e.key === "Enter") {
-                            const username = (e.target as HTMLInputElement).value.trim()
+                            const username = (
+                              e.target as HTMLInputElement
+                            ).value.trim();
                             if (username) {
-                              addSticker("mention", username, { username })
-                              ;(e.target as HTMLInputElement).value = ""
+                              addSticker("mention", username, { username });
+                              (e.target as HTMLInputElement).value = "";
                             }
                           }
                         }}
@@ -486,12 +628,12 @@ function App() {
                         size="sm"
                         onClick={() => {
                           const input = document.querySelector(
-                            'input[placeholder="Používateľské meno"]',
-                          ) as HTMLInputElement
-                          const username = input?.value.trim()
+                            'input[placeholder="Používateľské meno"]'
+                          ) as HTMLInputElement;
+                          const username = input?.value.trim();
                           if (username) {
-                            addSticker("mention", username, { username })
-                            input.value = ""
+                            addSticker("mention", username, { username });
+                            input.value = "";
                           }
                         }}
                       >
@@ -510,10 +652,14 @@ function App() {
                         placeholder="Názov lokácie"
                         onKeyDown={(e) => {
                           if (e.key === "Enter") {
-                            const locationName = (e.target as HTMLInputElement).value.trim()
+                            const locationName = (
+                              e.target as HTMLInputElement
+                            ).value.trim();
                             if (locationName) {
-                              addSticker("location", locationName, { locationName })
-                              ;(e.target as HTMLInputElement).value = ""
+                              addSticker("location", locationName, {
+                                locationName,
+                              });
+                              (e.target as HTMLInputElement).value = "";
                             }
                           }
                         }}
@@ -521,11 +667,15 @@ function App() {
                       <Button
                         size="sm"
                         onClick={() => {
-                          const input = document.querySelector('input[placeholder="Názov lokácie"]') as HTMLInputElement
-                          const locationName = input?.value.trim()
+                          const input = document.querySelector(
+                            'input[placeholder="Názov lokácie"]'
+                          ) as HTMLInputElement;
+                          const locationName = input?.value.trim();
                           if (locationName) {
-                            addSticker("location", locationName, { locationName })
-                            input.value = ""
+                            addSticker("location", locationName, {
+                              locationName,
+                            });
+                            input.value = "";
                           }
                         }}
                       >
@@ -551,7 +701,9 @@ function App() {
                 <CardContent>
                   <div
                     className="relative border rounded-lg overflow-hidden bg-white"
-                    style={{ aspectRatio: `${canvasSize.width}/${canvasSize.height}` }}
+                    style={{
+                      aspectRatio: `${canvasSize.width}/${canvasSize.height}`,
+                    }}
                     onMouseMove={handleMouseMove}
                     onMouseUp={handleMouseUp}
                   >
@@ -568,20 +720,26 @@ function App() {
                       <div
                         key={sticker.id}
                         className={`absolute cursor-move border-2 ${
-                          selectedSticker === sticker.id ? "border-blue-500" : "border-transparent"
+                          selectedSticker === sticker.id
+                            ? "border-blue-500"
+                            : "border-transparent"
                         } hover:border-blue-300 transition-colors`}
                         style={{
                           left: `${(sticker.x / canvasSize.width) * 100}%`,
                           top: `${(sticker.y / canvasSize.height) * 100}%`,
                           width: `${(sticker.width / canvasSize.width) * 100}%`,
-                          height: `${(sticker.height / canvasSize.height) * 100}%`,
+                          height: `${
+                            (sticker.height / canvasSize.height) * 100
+                          }%`,
                           transform: `rotate(${sticker.rotation}deg)`,
                         }}
                         onClick={(e) => handleStickerClick(sticker, e)}
                         onMouseDown={(e) => handleStickerMouseDown(sticker, e)}
                       >
                         {sticker.type === "sticker" && (
-                          <div className="w-full h-full flex items-center justify-center text-2xl">{sticker.emoji}</div>
+                          <div className="w-full h-full flex items-center justify-center text-2xl">
+                            {sticker.emoji}
+                          </div>
                         )}
                         {sticker.type === "mention" && (
                           <div className="w-full h-full bg-blue-500 text-white rounded px-2 py-1 text-xs flex items-center justify-center">
@@ -600,8 +758,8 @@ function App() {
                             variant="destructive"
                             className="absolute -top-2 -right-2 w-6 h-6 p-0"
                             onClick={(e) => {
-                              e.stopPropagation()
-                              removeSticker(sticker.id)
+                              e.stopPropagation();
+                              removeSticker(sticker.id);
                             }}
                           >
                             <X className="w-3 h-3" />
@@ -616,8 +774,10 @@ function App() {
                     <div className="mt-4 p-4 bg-gray-50 rounded-lg">
                       <h4 className="font-medium mb-3">Vlastnosti prvku</h4>
                       {(() => {
-                        const sticker = stickers.find((s) => s.id === selectedSticker)
-                        if (!sticker) return null
+                        const sticker = stickers.find(
+                          (s) => s.id === selectedSticker
+                        );
+                        if (!sticker) return null;
 
                         return (
                           <div className="space-y-3">
@@ -626,7 +786,9 @@ function App() {
                                 <Label className="text-xs">Šírka</Label>
                                 <Slider
                                   value={[sticker.width]}
-                                  onValueChange={([value]) => updateSticker(sticker.id, { width: value })}
+                                  onValueChange={([value]) =>
+                                    updateSticker(sticker.id, { width: value })
+                                  }
                                   min={20}
                                   max={200}
                                   step={1}
@@ -636,7 +798,9 @@ function App() {
                                 <Label className="text-xs">Výška</Label>
                                 <Slider
                                   value={[sticker.height]}
-                                  onValueChange={([value]) => updateSticker(sticker.id, { height: value })}
+                                  onValueChange={([value]) =>
+                                    updateSticker(sticker.id, { height: value })
+                                  }
                                   min={20}
                                   max={200}
                                   step={1}
@@ -644,17 +808,21 @@ function App() {
                               </div>
                             </div>
                             <div>
-                              <Label className="text-xs">Rotácia: {sticker.rotation}°</Label>
+                              <Label className="text-xs">
+                                Rotácia: {sticker.rotation}°
+                              </Label>
                               <Slider
                                 value={[sticker.rotation]}
-                                onValueChange={([value]) => updateSticker(sticker.id, { rotation: value })}
+                                onValueChange={([value]) =>
+                                  updateSticker(sticker.id, { rotation: value })
+                                }
                                 min={-180}
                                 max={180}
                                 step={1}
                               />
                             </div>
                           </div>
-                        )
+                        );
                       })()}
                     </div>
                   )}
@@ -691,7 +859,11 @@ function App() {
                     </div>
 
                     <div className="flex flex-col gap-2">
-                      <Button onClick={handleDownload} disabled={isExporting} className="w-full">
+                      <Button
+                        onClick={handleDownload}
+                        disabled={isExporting}
+                        className="w-full"
+                      >
                         {isExporting ? (
                           <>
                             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
@@ -733,25 +905,25 @@ function App() {
             }}
           >
             {(() => {
-              const sticker = stickers.find((s) => s.id === showTooltip.id)
-              if (!sticker) return "Neznámy prvok"
+              const sticker = stickers.find((s) => s.id === showTooltip.id);
+              if (!sticker) return "Neznámy prvok";
 
               switch (sticker.type) {
                 case "sticker":
-                  return `Sticker: ${sticker.emoji}`
+                  return `Sticker: ${sticker.emoji}`;
                 case "mention":
-                  return `Mention: @${sticker.username}`
+                  return `Mention: @${sticker.username}`;
                 case "location":
-                  return `Lokácia: ${sticker.locationName}`
+                  return `Lokácia: ${sticker.locationName}`;
                 default:
-                  return "Prvok"
+                  return "Prvok";
               }
             })()}
           </div>
         )}
       </div>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
