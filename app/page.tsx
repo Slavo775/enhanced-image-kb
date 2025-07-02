@@ -5,12 +5,13 @@ import { InstagramEditor } from "../src/components/InstagramEditor"
 import { BackgroundControls } from "../src/components/BackgroundControls"
 import { ImageUpload } from "../src/components/ImageUpload"
 import { useInstagramExport } from "../hooks/useInstagramExport"
-import { Button } from "../components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
-import { Input } from "../components/ui/input"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs"
+import { Button } from "../src/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "../src/components/ui/card"
+import { Input } from "../src/components/ui/input"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../src/components/ui/tabs"
 import { InteractiveImageViewer } from "../src/components/InteractiveImageViewer"
 import { DimensionControls } from "../src/components/DimensionControls"
+import { ImageEditor } from "../src/components/ImageEditor"
 import type { ImageEditorData, Sticker, Mention, LocationTag } from "../src/types"
 import type { InstagramEditorState } from "../hooks/useInstagramEditor"
 import { Download, Terminal } from "lucide-react"
@@ -50,7 +51,7 @@ const SAMPLE_LOCATIONS = [
   { name: "Paris", address: "Paris, France", coordinates: { lat: 48.8566, lng: 2.3522 } },
 ]
 
-export default function HomePage() {
+export default function Home() {
   const editorRef = useRef<{
     loadImage: (src: string) => void
     addSticker: (sticker: any) => string
@@ -82,6 +83,8 @@ export default function HomePage() {
     offsetY: 0,
     opacity: 1,
   })
+
+  const [activeEditor, setActiveEditor] = useState<"crop" | "instagram">("crop")
 
   const createSticker = (
     type: "emoji" | "image" | "text" | "svg",
@@ -231,11 +234,25 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 p-4">
+    <div className="min-h-screen bg-gray-50 p-4">
       <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">📱 Mobile-Friendly Image Editor</h1>
-          <p className="text-lg text-gray-600">Touch & drag support for mobile devices</p>
+        <div className="mb-8 text-center">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">Enhanced Image Editor</h1>
+          <p className="text-lg text-gray-600 mb-6">
+            Professional image editing with crop tools and Instagram-style features
+          </p>
+
+          <div className="flex justify-center gap-4">
+            <Button variant={activeEditor === "crop" ? "default" : "outline"} onClick={() => setActiveEditor("crop")}>
+              Crop Editor
+            </Button>
+            <Button
+              variant={activeEditor === "instagram" ? "default" : "outline"}
+              onClick={() => setActiveEditor("instagram")}
+            >
+              Instagram Editor
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
@@ -321,23 +338,27 @@ export default function HomePage() {
           <div className="lg:col-span-2">
             <Card>
               <CardHeader>
-                <CardTitle>📱 Mobile Image Editor</CardTitle>
+                <CardTitle>{activeEditor === "crop" ? "Image Crop Editor" : "Instagram Story Editor"}</CardTitle>
                 <div className="text-sm text-gray-600">
                   Canvas: {dimensions.width} × {dimensions.height}px (Touch & Drag Enabled)
                 </div>
               </CardHeader>
               <CardContent className="flex justify-center">
-                <InstagramEditor
-                  ref={editorRef}
-                  width={dimensions.width}
-                  height={dimensions.height}
-                  onDataChange={setEditorData}
-                  onStickerClick={handleStickerClick}
-                  onMentionClick={handleMentionClick}
-                  onLocationClick={handleLocationClick}
-                  editable={true}
-                  className="border-2 border-gray-200 rounded-lg shadow-lg"
-                />
+                {activeEditor === "crop" ? (
+                  <ImageEditor />
+                ) : (
+                  <InstagramEditor
+                    ref={editorRef}
+                    width={dimensions.width}
+                    height={dimensions.height}
+                    onDataChange={setEditorData}
+                    onStickerClick={handleStickerClick}
+                    onMentionClick={handleMentionClick}
+                    onLocationClick={handleLocationClick}
+                    editable={true}
+                    className="border-2 border-gray-200 rounded-lg shadow-lg"
+                  />
+                )}
               </CardContent>
             </Card>
           </div>

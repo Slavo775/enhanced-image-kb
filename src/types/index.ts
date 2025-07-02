@@ -11,44 +11,39 @@ export interface Size {
 }
 
 // Sticker types
-export interface Sticker {
+export interface StickerItem {
   id: string
-  type: "emoji" | "text" | "image" | "svg"
+  type: "emoji" | "text" | "svg" | "image"
   content: string
   position: Position
   size: Size
-  rotation?: number
-  zIndex?: number
+  rotation: number
+  zIndex: number
 }
 
 // Mention types
-export interface Mention {
+export interface MentionItem {
   id: string
   username: string
-  displayName: string
-  avatar?: string
   position: Position
   size: Size
+  zIndex: number
 }
 
 // Location types
-export interface LocationTag {
+export interface LocationItem {
   id: string
   name: string
-  address?: string
-  coordinates?: {
-    lat: number
-    lng: number
-  }
   position: Position
   size: Size
+  zIndex: number
 }
 
 // Editor data
 export interface ImageEditorData {
-  stickers: Sticker[]
-  mentions: Mention[]
-  locations: LocationTag[]
+  stickers: StickerItem[]
+  mentions: MentionItem[]
+  locations: LocationItem[]
 }
 
 // Props interfaces
@@ -59,9 +54,9 @@ export interface ImageEditorProps {
   height?: number
   data?: ImageEditorData
   onDataChange?: (data: ImageEditorData) => void
-  onStickerClick?: (sticker: Sticker) => void
-  onMentionClick?: (mention: Mention) => void
-  onLocationClick?: (location: LocationTag) => void
+  onStickerClick?: (sticker: StickerItem) => void
+  onMentionClick?: (mention: MentionItem) => void
+  onLocationClick?: (location: LocationItem) => void
   editable?: boolean
   className?: string
 }
@@ -112,14 +107,19 @@ export interface CropArea {
   y: number
   width: number
   height: number
-  scale: number
-  scaledImageWidth: number
-  scaledImageHeight: number
+}
+
+export interface ExportSettings {
+  format: "png" | "jpeg" | "webp"
+  quality: number
+  width?: number
+  height?: number
+  backgroundColor?: string
 }
 
 export interface EditorData {
   image: string | null
-  stickers: Sticker[]
+  stickers: StickerItem[]
   cropArea: CropArea | null
   backgroundSettings: BackgroundSettings
 }

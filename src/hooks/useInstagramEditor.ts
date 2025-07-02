@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useCallback, useRef, useEffect } from "react"
-import type { ImageEditorData } from "../types"
+import type { ImageEditorData } from "@/types"
 
 export interface BackgroundImageState {
   scale: number
@@ -9,10 +9,6 @@ export interface BackgroundImageState {
   offsetX: number
   offsetY: number
   opacity: number
-  brightness: number
-  contrast: number
-  saturation: number
-  blur: number
 }
 
 export interface InstagramEditorState {
@@ -24,7 +20,7 @@ export interface InstagramEditorState {
 
 export const useInstagramEditor = (canvasWidth: number, canvasHeight: number) => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
-  const imageRef = useRef<HTMLImageElement | null>(null)
+  const imageRef = useRef<HTMLImageElement>(null)
   const [imageLoaded, setImageLoaded] = useState(false)
 
   // Background image state
@@ -34,18 +30,13 @@ export const useInstagramEditor = (canvasWidth: number, canvasHeight: number) =>
     offsetX: 0,
     offsetY: 0,
     opacity: 1,
-    brightness: 100,
-    contrast: 100,
-    saturation: 100,
-    blur: 0,
   })
 
-  // Stickers state (positions relative to canvas)
+  // Stickers state (pozície relatívne k canvasu)
   const [stickersData, setStickersData] = useState<ImageEditorData>({
     stickers: [],
     mentions: [],
     locations: [],
-    texts: [],
   })
 
   // Load image
@@ -70,13 +61,13 @@ export const useInstagramEditor = (canvasWidth: number, canvasHeight: number) =>
           initialScale = canvasWidth / img.naturalWidth
         }
 
-        setBackgroundState((prev) => ({
-          ...prev,
+        setBackgroundState({
           scale: initialScale,
           rotation: 0,
           offsetX: 0,
           offsetY: 0,
-        }))
+          opacity: 1,
+        })
       }
       img.onerror = () => setImageLoaded(false)
       img.src = imageSrc
@@ -100,7 +91,7 @@ export const useInstagramEditor = (canvasWidth: number, canvasHeight: number) =>
     })
   }
 
-  const svgToImage = async (svgString: string): Promise<HTMLImageElement> => {
+  const svgToImage = async (svgString: string, width: number, height: number): Promise<HTMLImageElement> => {
     const svgBlob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" })
     const url = URL.createObjectURL(svgBlob)
     try {
@@ -141,7 +132,6 @@ export const useInstagramEditor = (canvasWidth: number, canvasHeight: number) =>
     const scaledHeight = img.naturalHeight * backgroundState.scale
 
     ctx.globalAlpha = backgroundState.opacity
-    ctx.filter = `brightness(${backgroundState.brightness}%) contrast(${backgroundState.contrast}%) saturate(${backgroundState.saturation}%) blur(${backgroundState.blur}px)`
     ctx.imageSmoothingEnabled = true
     ctx.imageSmoothingQuality = "high"
 
@@ -153,9 +143,8 @@ export const useInstagramEditor = (canvasWidth: number, canvasHeight: number) =>
       scaledHeight,
     )
     ctx.restore()
-    ctx.filter = "none"
 
-    // Draw ALL stickers on canvas
+    // Draw ALL stickers na canvas
     for (const sticker of stickersData.stickers) {
       const x = sticker.position.x
       const y = sticker.position.y
@@ -164,7 +153,6 @@ export const useInstagramEditor = (canvasWidth: number, canvasHeight: number) =>
 
       ctx.save()
 
-      // Apply rotation if needed
       if (sticker.rotation !== 0) {
         ctx.translate(x + width / 2, y + height / 2)
         ctx.rotate((sticker.rotation * Math.PI) / 180)
@@ -173,29 +161,25 @@ export const useInstagramEditor = (canvasWidth: number, canvasHeight: number) =>
         ctx.translate(x, y)
       }
 
-      // Apply opacity
-      ctx.globalAlpha = sticker.opacity || 1
-
       switch (sticker.type) {
         case "emoji":
           const emojiSize = Math.min(width, height) * 0.8
           ctx.font = `${emojiSize}px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Android Emoji", sans-serif`
           ctx.textAlign = "center"
           ctx.textBaseline = "middle"
+          ctx.fillStyle = "#000"
           ctx.fillText(sticker.content, width / 2, height / 2)
           break
 
         case "text":
-          // Create gradient background for text
           const gradient = ctx.createLinearGradient(0, 0, width, height)
-          gradient.addColorStop(0, sticker.color || "#ff6b6b")
-          gradient.addColorStop(1, sticker.secondaryColor || "#4ecdc4")
+          gradient.addColorStop(0, "#ff6b6b")
+          gradient.addColorStop(1, "#4ecdc4")
 
           ctx.fillStyle = gradient
           ctx.roundRect(0, 0, width, height, 8)
           ctx.fill()
 
-          // Draw text
           const textSize = Math.min(width, height) * 0.3
           ctx.fillStyle = "white"
           ctx.font = `bold ${textSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif`
@@ -219,7 +203,7 @@ export const useInstagramEditor = (canvasWidth: number, canvasHeight: number) =>
           try {
             if (sticker.content.startsWith("data:image/svg+xml;base64,")) {
               const svgString = atob(sticker.content.split(",")[1])
-              const img = await svgToImage(svgString)
+              const img = await svgToImage(svgString, width, height)
               ctx.drawImage(img, 0, 0, width, height)
             } else {
               const img = await loadImageHelper(sticker.content)
@@ -243,7 +227,7 @@ export const useInstagramEditor = (canvasWidth: number, canvasHeight: number) =>
       ctx.restore()
     }
 
-    // Draw mentions on canvas
+    // Draw mentions na canvas
     for (const mention of stickersData.mentions) {
       const x = mention.position.x
       const y = mention.position.y
@@ -252,20 +236,16 @@ export const useInstagramEditor = (canvasWidth: number, canvasHeight: number) =>
 
       ctx.save()
       ctx.translate(x, y)
-      ctx.globalAlpha = mention.opacity || 1
 
-      // Draw mention background
       ctx.fillStyle = "rgba(0, 122, 255, 0.9)"
       ctx.roundRect(0, 0, width, height, 16)
       ctx.fill()
 
-      // Draw mention border
       ctx.strokeStyle = "rgba(255,255,255,0.3)"
       ctx.lineWidth = 2
       ctx.roundRect(0, 0, width, height, 16)
       ctx.stroke()
 
-      // Draw mention text
       ctx.fillStyle = "white"
       ctx.font = `600 14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`
       ctx.textAlign = "center"
@@ -275,7 +255,7 @@ export const useInstagramEditor = (canvasWidth: number, canvasHeight: number) =>
       ctx.restore()
     }
 
-    // Draw locations on canvas
+    // Draw locations na canvas
     for (const location of stickersData.locations) {
       const x = location.position.x
       const y = location.position.y
@@ -284,20 +264,16 @@ export const useInstagramEditor = (canvasWidth: number, canvasHeight: number) =>
 
       ctx.save()
       ctx.translate(x, y)
-      ctx.globalAlpha = location.opacity || 1
 
-      // Draw location background
       ctx.fillStyle = "rgba(0, 0, 0, 0.8)"
       ctx.roundRect(0, 0, width, height, 12)
       ctx.fill()
 
-      // Draw location border
       ctx.strokeStyle = "rgba(255,255,255,0.3)"
       ctx.lineWidth = 1
       ctx.roundRect(0, 0, width, height, 12)
       ctx.stroke()
 
-      // Draw location icon and text
       ctx.fillStyle = "white"
       ctx.textAlign = "left"
       ctx.textBaseline = "middle"
@@ -307,63 +283,6 @@ export const useInstagramEditor = (canvasWidth: number, canvasHeight: number) =>
 
       ctx.font = `500 13px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`
       ctx.fillText(location.name, 30, height / 2)
-
-      ctx.restore()
-    }
-
-    // Draw custom texts
-    for (const text of stickersData.texts || []) {
-      const x = text.position.x
-      const y = text.position.y
-      const width = text.size.width
-      const height = text.size.height
-
-      ctx.save()
-
-      // Apply rotation if needed
-      if (text.rotation !== 0) {
-        ctx.translate(x + width / 2, y + height / 2)
-        ctx.rotate((text.rotation * Math.PI) / 180)
-        ctx.translate(-width / 2, -height / 2)
-      } else {
-        ctx.translate(x, y)
-      }
-
-      // Apply opacity
-      ctx.globalAlpha = text.opacity || 1
-
-      // Draw text
-      const fontSize = text.fontSize || Math.min(width, height) * 0.4
-      ctx.fillStyle = text.color || "#ffffff"
-      ctx.font = `${text.fontWeight || "bold"} ${fontSize}px ${text.fontFamily || "Arial, sans-serif"}`
-      ctx.textAlign = "center"
-      ctx.textBaseline = "middle"
-
-      // Add text shadow if specified
-      if (text.shadow) {
-        ctx.shadowColor = "rgba(0,0,0,0.5)"
-        ctx.shadowBlur = 4
-        ctx.shadowOffsetX = 2
-        ctx.shadowOffsetY = 2
-      }
-
-      // Draw text with word wrap if needed
-      const words = text.content.split(" ")
-      let line = ""
-      const lineHeight = fontSize * 1.2
-      const textY = height / 2 - ((words.length - 1) * lineHeight) / 2
-
-      for (let i = 0; i < words.length; i++) {
-        const testLine = line + words[i] + " "
-        const metrics = ctx.measureText(testLine)
-        if (metrics.width > width * 0.9 && i > 0) {
-          ctx.fillText(line, width / 2, textY + i * lineHeight)
-          line = words[i] + " "
-        } else {
-          line = testLine
-        }
-      }
-      ctx.fillText(line, width / 2, textY + words.length * lineHeight)
 
       ctx.restore()
     }
@@ -400,13 +319,13 @@ export const useInstagramEditor = (canvasWidth: number, canvasHeight: number) =>
       fitScale = canvasWidth / img.naturalWidth
     }
 
-    setBackgroundState((prev) => ({
-      ...prev,
+    setBackgroundState({
       scale: fitScale,
       rotation: 0,
       offsetX: 0,
       offsetY: 0,
-    }))
+      opacity: 1,
+    })
   }, [canvasWidth, canvasHeight])
 
   // Fill canvas (cover mode)
@@ -440,7 +359,6 @@ export const useInstagramEditor = (canvasWidth: number, canvasHeight: number) =>
     return canvas.toDataURL(`image/${format}`, format === "png" ? undefined : quality)
   }, [])
 
-  // Download canvas as image
   const downloadCanvas = useCallback((filename: string, format: "png" | "jpeg" | "webp" = "png", quality = 0.95) => {
     const canvas = canvasRef.current
     if (!canvas) return
@@ -452,30 +370,6 @@ export const useInstagramEditor = (canvasWidth: number, canvasHeight: number) =>
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
-  }, [])
-
-  // Copy canvas to clipboard
-  const copyToClipboard = useCallback(async () => {
-    const canvas = canvasRef.current
-    if (!canvas) return false
-
-    try {
-      canvas.toBlob(async (blob) => {
-        if (!blob) return false
-
-        try {
-          const item = new ClipboardItem({ "image/png": blob })
-          await navigator.clipboard.write([item])
-          return true
-        } catch (err) {
-          console.error("Failed to copy to clipboard:", err)
-          return false
-        }
-      }, "image/png")
-    } catch (err) {
-      console.error("Failed to create blob:", err)
-      return false
-    }
   }, [])
 
   return {
@@ -492,6 +386,5 @@ export const useInstagramEditor = (canvasWidth: number, canvasHeight: number) =>
     renderCanvas,
     exportCanvas,
     downloadCanvas,
-    copyToClipboard,
   }
 }

@@ -1,101 +1,82 @@
 "use client"
 
-import type React from "react"
+import React from "react"
+import { useState, useCallback, useRef } from "react"
+import type { Size, Position } from "../types"
 
-import { useState, useRef, useCallback, useEffect } from "react"
-import type { Size, ResizableOptions } from "../types"
-
-export function useResizable({
-  initialSize,
-  onSizeChange,
-  minSize = { width: 20, height: 20 },
-  disabled = false,
-}: ResizableOptions) {
-  const [size, setSize] = useState<Size>(initialSize)
+export const useResizable = (initialSize: Size, onSizeChange: (size: Size) => void, editable = true) => {
   const [isResizing, setIsResizing] = useState(false)
-  const resizeRef = useRef<HTMLDivElement>(null)
-  const resizeStartPos = useRef<{ x: number; y: number }>({ x: 0, y: 0 })
-  const elementStartSize = useRef<Size>(initialSize)
+  const [resizeHandle, setResizeHandle] = useState<string>("")
+  const startPos = useRef<Position>({ x: 0, y: 0 })
+  const startSize = useRef<Size>({ width: 0, height: 0 })
 
   const handleResizeStart = useCallback(
-    (e: React.MouseEvent) => {
-      if (disabled) return
+    (e: React.MouseEvent, handle: string) => {
+      if (!editable) return
 
       e.preventDefault()
       e.stopPropagation()
 
-      resizeStartPos.current = { x: e.clientX, y: e.clientY }
-      elementStartSize.current = size
       setIsResizing(true)
+      setResizeHandle(handle)
+      startPos.current = { x: e.clientX, y: e.clientY }
+      startSize.current = { ...initialSize }
     },
-    [disabled, size],
+    [editable, initialSize],
   )
 
-  const handleTouchResizeStart = useCallback(
-    (e: React.TouchEvent) => {
-      if (disabled) return
+  const handleResizeMove = useCallback(
+    (e: MouseEvent) => {
+      if (!isResizing || !editable) return
 
-      e.preventDefault()
-      e.stopPropagation()
+      const deltaX = e.clientX - startPos.current.x
+      const deltaY = e.clientY - startPos.current.y
 
-      const touch = e.touches[0]
-      resizeStartPos.current = { x: touch.clientX, y: touch.clientY }
-      elementStartSize.current = size
-      setIsResizing(true)
+      const newSize = { ...startSize.current }
+
+      switch (resizeHandle) {
+        case "se": // Southeast
+          newSize.width = Math.max(20, startSize.current.width + deltaX)
+          newSize.height = Math.max(20, startSize.current.height + deltaY)
+          break
+        case "sw": // Southwest
+          newSize.width = Math.max(20, startSize.current.width - deltaX)
+          newSize.height = Math.max(20, startSize.current.height + deltaY)
+          break
+        case "ne": // Northeast
+          newSize.width = Math.max(20, startSize.current.width + deltaX)
+          newSize.height = Math.max(20, startSize.current.height - deltaY)
+          break
+        case "nw": // Northwest
+          newSize.width = Math.max(20, startSize.current.width - deltaX)
+          newSize.height = Math.max(20, startSize.current.height - deltaY)
+          break
+      }
+
+      onSizeChange(newSize)
     },
-    [disabled, size],
+    [isResizing, resizeHandle, onSizeChange, editable],
   )
 
-  useEffect(() => {
-    if (!isResizing) return
+  const handleResizeEnd = useCallback(() => {
+    setIsResizing(false)
+    setResizeHandle("")
+  }, [])
 
-    const handleMouseMove = (e: MouseEvent) => {
-      const deltaX = e.clientX - resizeStartPos.current.x
-      const deltaY = e.clientY - resizeStartPos.current.y
+  React.useEffect(() => {
+    if (isResizing) {
+      document.addEventListener("mousemove", handleResizeMove)
+      document.addEventListener("mouseup", handleResizeEnd)
 
-      const newWidth = Math.max(minSize.width, elementStartSize.current.width + deltaX)
-      const newHeight = Math.max(minSize.height, elementStartSize.current.height + deltaY)
-
-      const newSize = { width: newWidth, height: newHeight }
-      setSize(newSize)
-      onSizeChange?.(newSize)
+      return () => {
+        document.removeEventListener("mousemove", handleResizeMove)
+        document.removeEventListener("mouseup", handleResizeEnd)
+      }
     }
-
-    const handleTouchMove = (e: TouchEvent) => {
-      const touch = e.touches[0]
-      const deltaX = touch.clientX - resizeStartPos.current.x
-      const deltaY = touch.clientY - resizeStartPos.current.y
-
-      const newWidth = Math.max(minSize.width, elementStartSize.current.width + deltaX)
-      const newHeight = Math.max(minSize.height, elementStartSize.current.height + deltaY)
-
-      const newSize = { width: newWidth, height: newHeight }
-      setSize(newSize)
-      onSizeChange?.(newSize)
-    }
-
-    const handleMouseUp = () => {
-      setIsResizing(false)
-    }
-
-    document.addEventListener("mousemove", handleMouseMove)
-    document.addEventListener("mouseup", handleMouseUp)
-    document.addEventListener("touchmove", handleTouchMove)
-    document.addEventListener("touchend", handleMouseUp)
-
-    return () => {
-      document.removeEventListener("mousemove", handleMouseMove)
-      document.removeEventListener("mouseup", handleMouseUp)
-      document.removeEventListener("touchmove", handleTouchMove)
-      document.removeEventListener("touchend", handleMouseUp)
-    }
-  }, [isResizing, minSize, onSizeChange])
+  }, [isResizing, handleResizeMove, handleResizeEnd])
 
   return {
-    size,
     isResizing,
-    resizeRef,
     handleResizeStart,
-    handleTouchResizeStart,
   }
 }

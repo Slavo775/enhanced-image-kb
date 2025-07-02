@@ -1,44 +1,29 @@
 "use client"
 
-import type React from "react"
+import * as React from "react"
+import * as SwitchPrimitives from "@radix-ui/react-switch"
 
-interface SwitchProps {
-  checked: boolean
-  onCheckedChange: (checked: boolean) => void
-  id?: string
-  style?: React.CSSProperties
-}
+import { cn } from "@/lib/utils"
 
-export const Switch: React.FC<SwitchProps> = ({ checked, onCheckedChange, id, style }) => {
-  const switchStyles: React.CSSProperties = {
-    position: "relative",
-    display: "inline-block",
-    width: "44px",
-    height: "24px",
-    backgroundColor: checked ? "#3b82f6" : "#d1d5db",
-    borderRadius: "12px",
-    cursor: "pointer",
-    transition: "background-color 0.2s ease",
-    border: "none",
-    outline: "none",
-    ...style,
-  }
+const Switch = React.forwardRef<
+  React.ElementRef<typeof SwitchPrimitives.Root>,
+  React.ComponentPropsWithoutRef<typeof SwitchPrimitives.Root>
+>(({ className, ...props }, ref) => (
+  <SwitchPrimitives.Root
+    className={cn(
+      "peer inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=unchecked]:bg-input",
+      className,
+    )}
+    {...props}
+    ref={ref}
+  >
+    <SwitchPrimitives.Thumb
+      className={cn(
+        "pointer-events-none block h-5 w-5 rounded-full bg-background shadow-lg ring-0 transition-transform data-[state=checked]:translate-x-5 data-[state=unchecked]:translate-x-0",
+      )}
+    />
+  </SwitchPrimitives.Root>
+))
+Switch.displayName = SwitchPrimitives.Root.displayName
 
-  const thumbStyles: React.CSSProperties = {
-    position: "absolute",
-    top: "2px",
-    left: checked ? "22px" : "2px",
-    width: "20px",
-    height: "20px",
-    backgroundColor: "white",
-    borderRadius: "50%",
-    transition: "left 0.2s ease",
-    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
-  }
-
-  return (
-    <button id={id} style={switchStyles} onClick={() => onCheckedChange(!checked)} role="switch" aria-checked={checked}>
-      <div style={thumbStyles} />
-    </button>
-  )
-}
+export { Switch }
