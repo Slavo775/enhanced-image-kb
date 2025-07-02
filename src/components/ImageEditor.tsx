@@ -6,7 +6,7 @@ import { CanvasEditor } from "./CanvasEditor";
 import { ControlPanel } from "./ControlPanel";
 import { ImagePreview } from "./ImagePreview";
 import type {
-  EditorState,
+  EditorData,
   ImageData,
   CropPreset,
   StickerItem,
@@ -21,21 +21,17 @@ export function ImageEditor({
   onStateChange,
   onExport,
 }: ImageEditorProps) {
-  const [state, setState] = useState<EditorState>({
+  const [state, setState] = useState<EditorData>({
     image: null,
     cropArea: null,
-    cropPreset: null,
     stickers: [],
-    mentions: [],
-    locations: [],
-    selectedItem: null,
   });
   const [previewCanvas, setPreviewCanvas] = useState<HTMLCanvasElement | null>(
     null
   );
 
   const updateState = useCallback(
-    (updates: Partial<EditorState>) => {
+    (updates: Partial<EditorData>) => {
       setState((prev) => {
         const newState = { ...prev, ...updates };
         onStateChange?.(newState);
