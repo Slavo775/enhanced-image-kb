@@ -77,6 +77,7 @@ export function useCanvasCrop({
     ctx.stroke();
     ctx.restore();
   };
+  const imgCache = useRef<Record<string, HTMLImageElement>>({});
 
   const drawCanvas = () => {
     const canvas = canvasRef.current;
@@ -106,8 +107,16 @@ export function useCanvasCrop({
         sticker.src.startsWith("data:image") ||
         sticker.src.startsWith("http")
       ) {
-        const stickerImg = new Image();
-        stickerImg.onload = () => {
+        let stickerImg = imgCache.current[sticker.src];
+        if (!stickerImg) {
+          stickerImg = new Image();
+          stickerImg.src = sticker.src;
+          imgCache.current[sticker.src] = stickerImg;
+          // Po načítaní obrázka prekresli canvas
+          stickerImg.onload = () => drawCanvas();
+          return; // preruš vykresľovanie teraz, vykreslí sa po načítaní
+        }
+        if (stickerImg.complete) {
           ctx.drawImage(
             stickerImg,
             sticker.x,
@@ -115,48 +124,29 @@ export function useCanvasCrop({
             sticker.width,
             sticker.height
           );
-
-          // Draw selection border
-          if (sticker.id === selectedStickerId) {
-            ctx.strokeStyle = "#007bff";
-            ctx.lineWidth = 2;
-            ctx.strokeRect(sticker.x, sticker.y, sticker.width, sticker.height);
-
-            // Draw resize handles
-            drawResizeHandle(ctx, sticker.x, sticker.y);
-            drawResizeHandle(ctx, sticker.x + sticker.width, sticker.y);
-            drawResizeHandle(ctx, sticker.x, sticker.y + sticker.height);
-            drawResizeHandle(
-              ctx,
-              sticker.x + sticker.width,
-              sticker.y + sticker.height
-            );
-          }
-        };
-        stickerImg.src = sticker.src;
+        }
       } else {
         // Render emoji or text as sticker
         ctx.font = `${sticker.height}px sans-serif`;
         ctx.textAlign = "left";
         ctx.textBaseline = "top";
         ctx.fillText(sticker.src, sticker.x, sticker.y);
+      }
 
-        // Draw selection border
-        if (sticker.id === selectedStickerId) {
-          ctx.strokeStyle = "#007bff";
-          ctx.lineWidth = 2;
-          ctx.strokeRect(sticker.x, sticker.y, sticker.width, sticker.height);
+      // Draw selection border & resize handles
+      if (sticker.id === selectedStickerId) {
+        ctx.strokeStyle = "#007bff";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(sticker.x, sticker.y, sticker.width, sticker.height);
 
-          // Draw resize handles
-          drawResizeHandle(ctx, sticker.x, sticker.y);
-          drawResizeHandle(ctx, sticker.x + sticker.width, sticker.y);
-          drawResizeHandle(ctx, sticker.x, sticker.y + sticker.height);
-          drawResizeHandle(
-            ctx,
-            sticker.x + sticker.width,
-            sticker.y + sticker.height
-          );
-        }
+        drawResizeHandle(ctx, sticker.x, sticker.y);
+        drawResizeHandle(ctx, sticker.x + sticker.width, sticker.y);
+        drawResizeHandle(ctx, sticker.x, sticker.y + sticker.height);
+        drawResizeHandle(
+          ctx,
+          sticker.x + sticker.width,
+          sticker.y + sticker.height
+        );
       }
     });
 
