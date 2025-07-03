@@ -1,119 +1,119 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useEffect, useState } from "react";
+import { StickerInput } from "../../components/canvas/Canvas";
+
+export type UseCanvasCropProps = {
+  image: string;
+  cropWidth: number;
+  cropHeight: number;
+  rotation: number;
+  initialZoom: number;
+  setOutputImage?: (dataUrl: string, metadata?: StickerInput[]) => void;
+  stickers: StickerInput[];
+  onStickersChange?: (updated: StickerInput[]) => void;
+};
 
 export function useCanvasCrop({
   image,
   cropWidth,
   cropHeight,
   rotation,
-  initialZoom = 100,
+  initialZoom,
   setOutputImage,
-}: {
-  image: string;
-  cropWidth: number;
-  cropHeight: number;
-  rotation: number;
-  initialZoom?: number;
-  setOutputImage?: (dataUrl: string) => void;
-}) {
+  stickers,
+}: UseCanvasCropProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [imageObj, setImageObj] = useState<HTMLImageElement | null>(null);
-  const [scaledSize, setScaledSize] = useState({ width: 0, height: 0 });
-  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [position, setPositionState] = useState({ x: 0, y: 0 });
   const [currentZoom, setCurrentZoom] = useState(initialZoom);
-  const zoomTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const imgRef = useRef<HTMLImageElement | null>(null);
 
-  const clamp = (val: number, min: number, max: number) =>
-    Math.max(min, Math.min(max, val));
+  const clamp = (value: number, min: number, max: number) => {
+    return Math.min(Math.max(value, min), max);
+  };
+
+  const setPosition = (pos: { x: number; y: number }) => {
+    if (!imgRef.current) return;
+    const scale = currentZoom / 100;
+    const scaledWidth = imgRef.current.width * scale;
+    const scaledHeight = imgRef.current.height * scale;
+
+    const maxX = Math.max(0, (scaledWidth - cropWidth) / 2);
+    const maxY = Math.max(0, (scaledHeight - cropHeight) / 2);
+
+    const clampedX = clamp(pos.x, -maxX, maxX);
+    const clampedY = clamp(pos.y, -maxY, maxY);
+
+    setPositionState({ x: clampedX, y: clampedY });
+  };
 
   useEffect(() => {
     const img = new Image();
-    img.src = image;
     img.onload = () => {
-      const shouldCover = img.width < cropWidth || img.height < cropHeight;
-      const scale = shouldCover
-        ? Math.max(cropWidth / img.width, cropHeight / img.height)
-        : Math.min(cropWidth / img.width, cropHeight / img.height);
-
-      setScaledSize({
-        width: img.width * scale,
-        height: img.height * scale,
-      });
-
-      setPosition({ x: 0, y: 0 });
-      setImageObj(img);
+      imgRef.current = img;
+      drawCanvas();
     };
-  }, [image, cropWidth, cropHeight]);
+    img.src = image;
+  }, [image, currentZoom, position, rotation, stickers]);
 
   const drawCanvas = () => {
-    if (!canvasRef.current || !imageObj) return;
-    const ctx = canvasRef.current.getContext("2d");
-    if (!ctx) return;
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext("2d");
+    if (!canvas || !ctx || !imgRef.current) return;
 
-    canvasRef.current.width = cropWidth;
-    canvasRef.current.height = cropHeight;
+    canvas.width = cropWidth;
+    canvas.height = cropHeight;
+
     ctx.clearRect(0, 0, cropWidth, cropHeight);
-
-    const zoomFactor = currentZoom / 100;
-    const drawWidth = scaledSize.width * zoomFactor;
-    const drawHeight = scaledSize.height * zoomFactor;
-
     ctx.save();
-    ctx.translate(cropWidth / 2 + position.x, cropHeight / 2 + position.y);
+
+    const scale = currentZoom / 100;
+    ctx.translate(position.x + cropWidth / 2, position.y + cropHeight / 2);
     ctx.rotate((rotation * Math.PI) / 180);
+    ctx.scale(scale, scale);
     ctx.drawImage(
-      imageObj,
-      -drawWidth / 2,
-      -drawHeight / 2,
-      drawWidth,
-      drawHeight
+      imgRef.current,
+      -imgRef.current.width / 2,
+      -imgRef.current.height / 2
     );
     ctx.restore();
-  };
 
-  const getBounds = () => {
-    const zoomFactor = currentZoom / 100;
-    const w = scaledSize.width * zoomFactor;
-    const h = scaledSize.height * zoomFactor;
-    return {
-      minX: w < cropWidth ? -(cropWidth - w) / 2 : -(w - cropWidth) / 2,
-      maxX: w < cropWidth ? +(cropWidth - w) / 2 : +(w - cropWidth) / 2,
-      minY: h < cropHeight ? -(cropHeight - h) / 2 : -(h - cropHeight) / 2,
-      maxY: h < cropHeight ? +(cropHeight - h) / 2 : +(h - cropHeight) / 2,
-    };
-  };
-
-  const updateZoom = (newZoom: number) => {
-    setCurrentZoom(clamp(newZoom, 10, 500));
-    if (zoomTimeoutRef.current) clearTimeout(zoomTimeoutRef.current);
-    zoomTimeoutRef.current = setTimeout(() => {
-      if (canvasRef.current && setOutputImage) {
-        setOutputImage(canvasRef.current.toDataURL());
+    // Draw stickers
+    stickers.forEach((sticker) => {
+      if (
+        sticker.src.startsWith("data:image") ||
+        sticker.src.startsWith("http")
+      ) {
+        const stickerImg = new Image();
+        stickerImg.onload = () => {
+          ctx.drawImage(
+            stickerImg,
+            sticker.x,
+            sticker.y,
+            sticker.width,
+            sticker.height
+          );
+        };
+        stickerImg.src = sticker.src;
+      } else {
+        // Render emoji or text as sticker
+        ctx.font = `${sticker.height}px sans-serif`;
+        ctx.textAlign = "left";
+        ctx.textBaseline = "top";
+        ctx.fillText(sticker.src, sticker.x, sticker.y);
       }
-    }, 200);
-  };
-
-  const updatePosition = (x: number, y: number) => {
-    const { minX, maxX, minY, maxY } = getBounds();
-    setPosition({
-      x: clamp(x, minX, maxX),
-      y: clamp(y, minY, maxY),
     });
-  };
 
-  useEffect(() => {
-    if (imageObj) drawCanvas();
-  }, [imageObj, scaledSize, position, currentZoom, rotation]);
+    if (setOutputImage) {
+      const dataUrl = canvas.toDataURL();
+      setOutputImage(dataUrl, stickers);
+    }
+  };
 
   return {
     canvasRef,
-    drawCanvas,
-    getBounds,
     clamp,
-    imageObj,
-    scaledSize,
-    position,
-    setPosition: updatePosition,
+    setCurrentZoom,
     currentZoom,
-    setCurrentZoom: updateZoom,
+    setPosition,
+    position,
   };
 }

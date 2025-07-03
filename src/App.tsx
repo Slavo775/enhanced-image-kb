@@ -35,6 +35,7 @@ import {
 } from "lucide-react";
 import "./styles/globals.css";
 import ImageCanvas from "./components/canvas/Canvas";
+import TestCanvasContainer from "./components/canvas/CanvasStickersAddTest";
 
 interface ImagePosition {
   x: number;
@@ -737,12 +738,17 @@ function App() {
                   </div>
 
                   <Separator />
-                  <ImageCanvas
+                  {/* <ImageCanvas
                     image={originalImage}
                     cropWidth={600}
                     cropHeight={600}
                     zoom={50}
                     rotation={0}
+                    setOutputImage={setOutputImage}
+                  /> */}
+
+                  <TestCanvasContainer
+                    image={originalImage}
                     setOutputImage={setOutputImage}
                   />
                   {outputImage && <img src={outputImage} />}

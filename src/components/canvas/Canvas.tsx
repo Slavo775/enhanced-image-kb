@@ -3,13 +3,29 @@ import { useCanvasCrop } from "../../hooks/canvas/useCanvasCrop";
 import { useCanvasCropMouse } from "../../hooks/canvas/useCanvasCropMouse";
 import { useCanvasTouch } from "../../hooks/canvas/useCanvasTouch";
 
+export type StickerType = "sticker" | "mention" | "location" | "emoji";
+
+export type StickerInput = {
+  id: string;
+  type: StickerType;
+  src: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  action?: () => void;
+  payload?: Record<string, any>;
+};
+
 type Props = {
   image: string;
   cropWidth: number;
   cropHeight: number;
   zoom: number;
   rotation: number;
-  setOutputImage?: (dataUrl: string) => void;
+  setOutputImage?: (dataUrl: string, metadata?: StickerInput[]) => void;
+  stickers: StickerInput[];
+  onStickersChange?: (updated: StickerInput[]) => void;
 };
 
 export default function ImageCanvas({
@@ -19,6 +35,8 @@ export default function ImageCanvas({
   zoom,
   rotation,
   setOutputImage,
+  stickers,
+  onStickersChange,
 }: Props) {
   const {
     canvasRef,
@@ -34,14 +52,17 @@ export default function ImageCanvas({
     rotation,
     initialZoom: zoom,
     setOutputImage,
+    stickers,
+    onStickersChange,
   });
 
   const { onMouseDown, onMouseMove, onMouseUp } = useCanvasCropMouse(
-    setPosition,
+    (x: number, y: number) => setPosition({ x, y }),
     position
   );
+
   const { onTouchStart, onTouchMove, onTouchEnd } = useCanvasTouch(
-    setPosition,
+    (x: number, y: number) => setPosition({ x, y }),
     position,
     setCurrentZoom,
     currentZoom,
