@@ -1,3 +1,4 @@
+// useCanvasCrop.ts
 import { useRef, useEffect, useState } from "react";
 import { StickerInput } from "../../components/canvas/Canvas";
 import { useCanvasStickerInteraction } from "../../hooks/canvas/useCanvasStickerInteraction";
@@ -27,6 +28,9 @@ export function useCanvasCrop({
   const [position, setPositionState] = useState({ x: 0, y: 0 });
   const [currentZoom, setCurrentZoom] = useState(initialZoom);
   const [isDraggingSticker, setIsDraggingSticker] = useState(false);
+  const [selectedStickerId, setSelectedStickerId] = useState<
+    string | undefined
+  >(undefined);
   const imgRef = useRef<HTMLImageElement | null>(null);
 
   const clamp = (value: number, min: number, max: number) => {
@@ -55,7 +59,24 @@ export function useCanvasCrop({
       drawCanvas();
     };
     img.src = image;
-  }, [image, currentZoom, position, rotation, stickers]);
+  }, [image, currentZoom, position, rotation, stickers, selectedStickerId]);
+
+  const drawResizeHandle = (
+    ctx: CanvasRenderingContext2D,
+    x: number,
+    y: number
+  ) => {
+    const size = 10;
+    ctx.save();
+    ctx.fillStyle = "#007bff";
+    ctx.strokeStyle = "#fff";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.rect(x - size / 2, y - size / 2, size, size);
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+  };
 
   const drawCanvas = () => {
     const canvas = canvasRef.current;
@@ -94,6 +115,23 @@ export function useCanvasCrop({
             sticker.width,
             sticker.height
           );
+
+          // Draw selection border
+          if (sticker.id === selectedStickerId) {
+            ctx.strokeStyle = "#007bff";
+            ctx.lineWidth = 2;
+            ctx.strokeRect(sticker.x, sticker.y, sticker.width, sticker.height);
+
+            // Draw resize handles
+            drawResizeHandle(ctx, sticker.x, sticker.y);
+            drawResizeHandle(ctx, sticker.x + sticker.width, sticker.y);
+            drawResizeHandle(ctx, sticker.x, sticker.y + sticker.height);
+            drawResizeHandle(
+              ctx,
+              sticker.x + sticker.width,
+              sticker.y + sticker.height
+            );
+          }
         };
         stickerImg.src = sticker.src;
       } else {
@@ -102,6 +140,23 @@ export function useCanvasCrop({
         ctx.textAlign = "left";
         ctx.textBaseline = "top";
         ctx.fillText(sticker.src, sticker.x, sticker.y);
+
+        // Draw selection border
+        if (sticker.id === selectedStickerId) {
+          ctx.strokeStyle = "#007bff";
+          ctx.lineWidth = 2;
+          ctx.strokeRect(sticker.x, sticker.y, sticker.width, sticker.height);
+
+          // Draw resize handles
+          drawResizeHandle(ctx, sticker.x, sticker.y);
+          drawResizeHandle(ctx, sticker.x + sticker.width, sticker.y);
+          drawResizeHandle(ctx, sticker.x, sticker.y + sticker.height);
+          drawResizeHandle(
+            ctx,
+            sticker.x + sticker.width,
+            sticker.y + sticker.height
+          );
+        }
       }
     });
 
@@ -111,12 +166,13 @@ export function useCanvasCrop({
     }
   };
 
-  // Hook to enable dragging stickers
   useCanvasStickerInteraction(
     canvasRef,
     stickers,
+    selectedStickerId,
     onStickersChange,
-    setIsDraggingSticker
+    setIsDraggingSticker,
+    setSelectedStickerId
   );
 
   return {
