@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { useCanvasCrop } from "../../hooks/canvas/useCanvasCrop";
 import { useCanvasCropMouse } from "../../hooks/canvas/useCanvasCropMouse";
 import { useCanvasTouch } from "../../hooks/canvas/useCanvasTouch";
+import { useCanvasStickerInteraction } from "../../hooks/canvas/useCanvasStickerInteraction";
 
 export type StickerType = "sticker" | "mention" | "location" | "emoji";
 

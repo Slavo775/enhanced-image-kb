@@ -1,5 +1,6 @@
 import { useRef, useEffect, useState } from "react";
 import { StickerInput } from "../../components/canvas/Canvas";
+import { useCanvasStickerInteraction } from "../../hooks/canvas/useCanvasStickerInteraction";
 
 export type UseCanvasCropProps = {
   image: string;
@@ -20,10 +21,12 @@ export function useCanvasCrop({
   initialZoom,
   setOutputImage,
   stickers,
+  onStickersChange,
 }: UseCanvasCropProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [position, setPositionState] = useState({ x: 0, y: 0 });
   const [currentZoom, setCurrentZoom] = useState(initialZoom);
+  const [isDraggingSticker, setIsDraggingSticker] = useState(false);
   const imgRef = useRef<HTMLImageElement | null>(null);
 
   const clamp = (value: number, min: number, max: number) => {
@@ -31,7 +34,7 @@ export function useCanvasCrop({
   };
 
   const setPosition = (pos: { x: number; y: number }) => {
-    if (!imgRef.current) return;
+    if (!imgRef.current || isDraggingSticker) return;
     const scale = currentZoom / 100;
     const scaledWidth = imgRef.current.width * scale;
     const scaledHeight = imgRef.current.height * scale;
@@ -107,6 +110,14 @@ export function useCanvasCrop({
       setOutputImage(dataUrl, stickers);
     }
   };
+
+  // Hook to enable dragging stickers
+  useCanvasStickerInteraction(
+    canvasRef,
+    stickers,
+    onStickersChange,
+    setIsDraggingSticker
+  );
 
   return {
     canvasRef,
