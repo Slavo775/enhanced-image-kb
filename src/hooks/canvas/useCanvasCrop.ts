@@ -20,8 +20,8 @@ export function useCanvasCrop({
   cropHeight,
   rotation,
   initialZoom,
-  setOutputImage,
   stickers,
+  setOutputImage,
   onStickersChange,
 }: UseCanvasCropProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);

@@ -1,7 +1,7 @@
 import { useRef, useEffect, useState } from "react";
 import { StickerInput } from "../../components/canvas/Canvas";
 
-type ResizeCorner = "tl" | "tr" | "bl" | "br" | null;
+type ResizeCorner = "tl" | "tr" | "bl" | "br";
 
 export function useCanvasStickerInteraction(
   canvasRef: React.RefObject<HTMLCanvasElement>,
@@ -13,7 +13,7 @@ export function useCanvasStickerInteraction(
 ) {
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [resizingId, setResizingId] = useState<string | null>(null);
-  const [resizeCorner, setResizeCorner] = useState<ResizeCorner>(null);
+  const [resizeCorner, setResizeCorner] = useState<ResizeCorner | null>(null);
 
   const offsetRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const startPosRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -40,7 +40,7 @@ export function useCanvasStickerInteraction(
     x: number,
     y: number,
     handleSize = 10
-  ): ResizeCorner => {
+  ): ResizeCorner | null => {
     const corners = {
       tl: { x: sticker.x, y: sticker.y },
       tr: { x: sticker.x + sticker.width, y: sticker.y },
