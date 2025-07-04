@@ -1,1 +1,1 @@
-export * from "./components/canvas/Canvas.tsx";
+export * from "./components/canvas/Canvas";
