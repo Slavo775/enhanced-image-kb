@@ -35,7 +35,7 @@
     ".": {
       "import": "./dist/react-enhanced-image.es.js",
       "require": "./dist/react-enhanced-image.umd.js",
-      "types": "./dist/types/index.d.ts"
+      "types": "./dist/types/src/index.d.ts"
     }
   }
 }
