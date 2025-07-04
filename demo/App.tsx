@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import ImageCanvas, { StickerInput } from "../src/components/canvas/Canvas"; // uprav podľa reálnej cesty
+import { StickerInput, ImageCanvas } from "../src/components/canvas/Canvas"; // uprav podľa reálnej cesty
 
 const App = () => {
   const [originalImage, setOriginalImage] = useState<string | null>(null);

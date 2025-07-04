@@ -28,7 +28,7 @@ export type Props = {
   onStickersChange?: (updated: StickerInput[]) => void;
 };
 
-export default function ImageCanvas({
+export function ImageCanvas({
   image,
   cropWidth,
   cropHeight,
