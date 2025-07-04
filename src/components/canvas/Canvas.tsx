@@ -17,7 +17,7 @@ export type StickerInput = {
   payload?: Record<string, any>;
 };
 
-type Props = {
+export type Props = {
   image: string;
   cropWidth: number;
   cropHeight: number;
