@@ -1,13 +1,13 @@
 {
-  "name": "react-image-editor",
+  "name": "react-enhanced-image",
   "version": "1.0.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "tsc && vite build",
     "dev": "vite",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "build": "BUILD_LIB=true vite build",
+    "typegen": "tsc",
+    "lint": "eslint . --ext ts,tsx"
   },
   "dependencies": {
     "clsx": "^2.1.1",
@@ -27,5 +27,15 @@
     "eslint-plugin-react-refresh": "^0.4.20",
     "typescript": "^5.8.3",
     "vite": "^7.0.1"
+  },
+  "main": "dist/react-enhanced-image.umd.js",
+  "module": "dist/react-enhanced-image.es.js",
+  "types": "dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/react-enhanced-image.es.js",
+      "require": "./dist/react-enhanced-image.umd.js",
+      "types": "./dist/types/index.d.ts"
+    }
   }
 }

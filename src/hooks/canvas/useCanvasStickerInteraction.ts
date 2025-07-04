@@ -4,7 +4,7 @@ import { StickerInput } from "../../components/canvas/Canvas";
 type ResizeCorner = "tl" | "tr" | "bl" | "br";
 
 export function useCanvasStickerInteraction(
-  canvasRef: React.RefObject<HTMLCanvasElement>,
+  canvasRef: React.RefObject<HTMLCanvasElement | null>,
   stickers: StickerInput[],
   selectedStickerId?: string,
   onStickersChange?: (updated: StickerInput[]) => void,
@@ -101,8 +101,6 @@ export function useCanvasStickerInteraction(
         if (s.id !== resizingId) return s;
         let newWidth = startSizeRef.current.width;
         let newHeight = startSizeRef.current.height;
-        let newX = s.x;
-        let newY = s.y;
 
         switch (resizeCorner) {
           case "tl": {

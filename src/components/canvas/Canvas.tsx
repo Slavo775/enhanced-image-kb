@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { useCanvasCrop } from "../../hooks/canvas/useCanvasCrop";
 import { useCanvasCropMouse } from "../../hooks/canvas/useCanvasCropMouse";
 import { useCanvasTouch } from "../../hooks/canvas/useCanvasTouch";
