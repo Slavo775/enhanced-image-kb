@@ -79,7 +79,7 @@ export function useCanvasCrop({
   };
   const imgCache = useRef<Record<string, HTMLImageElement>>({});
 
-  const drawCanvas = () => {
+  const createCanvas = () => {
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext("2d");
     if (!canvas || !ctx || !imgRef.current) return;
@@ -101,58 +101,88 @@ export function useCanvasCrop({
     );
     ctx.restore();
 
+    return ctx;
+  };
+
+  const drawImageSticker = (
+    ctx: CanvasRenderingContext2D,
+    sticker: StickerInput
+  ) => {
+    let stickerImg = imgCache.current[sticker.src];
+    if (!stickerImg) {
+      stickerImg = new Image();
+      stickerImg.src = sticker.src;
+      imgCache.current[sticker.src] = stickerImg;
+      // Po načítaní obrázka prekresli canvas
+      stickerImg.onload = () => drawCanvas();
+      return; // preruš vykresľovanie teraz, vykreslí sa po načítaní
+    }
+    if (stickerImg.complete) {
+      ctx.drawImage(
+        stickerImg,
+        sticker.x,
+        sticker.y,
+        sticker.width,
+        sticker.height
+      );
+    }
+  };
+
+  const drawText = (ctx: CanvasRenderingContext2D, sticker: StickerInput) => {
+    ctx.font = `${sticker.height}px sans-serif`;
+    ctx.textAlign = "left";
+    ctx.textBaseline = "top";
+    ctx.fillText(sticker.src, sticker.x, sticker.y);
+  };
+
+  const drawResizableBorder = (
+    ctx: CanvasRenderingContext2D,
+    sticker: StickerInput
+  ) => {
+    ctx.strokeStyle = "#007bff";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(sticker.x, sticker.y, sticker.width, sticker.height);
+
+    drawResizeHandle(ctx, sticker.x, sticker.y);
+    drawResizeHandle(ctx, sticker.x + sticker.width, sticker.y);
+    drawResizeHandle(ctx, sticker.x, sticker.y + sticker.height);
+    drawResizeHandle(
+      ctx,
+      sticker.x + sticker.width,
+      sticker.y + sticker.height
+    );
+  };
+
+  const exportImage = (canvas: HTMLCanvasElement) => {
+    const dataUrl = canvas.toDataURL();
+    setOutputImage?.(dataUrl, stickers);
+  };
+
+  const drawCanvas = () => {
+    const canvas = canvasRef.current;
+    const ctx = createCanvas();
+    if (!ctx || !canvas) return;
+
     // Draw stickers
     stickers.forEach((sticker) => {
       if (
         sticker.src.startsWith("data:image") ||
         sticker.src.startsWith("http")
       ) {
-        let stickerImg = imgCache.current[sticker.src];
-        if (!stickerImg) {
-          stickerImg = new Image();
-          stickerImg.src = sticker.src;
-          imgCache.current[sticker.src] = stickerImg;
-          // Po načítaní obrázka prekresli canvas
-          stickerImg.onload = () => drawCanvas();
-          return; // preruš vykresľovanie teraz, vykreslí sa po načítaní
-        }
-        if (stickerImg.complete) {
-          ctx.drawImage(
-            stickerImg,
-            sticker.x,
-            sticker.y,
-            sticker.width,
-            sticker.height
-          );
-        }
+        drawImageSticker(ctx, sticker);
       } else {
         // Render emoji or text as sticker
-        ctx.font = `${sticker.height}px sans-serif`;
-        ctx.textAlign = "left";
-        ctx.textBaseline = "top";
-        ctx.fillText(sticker.src, sticker.x, sticker.y);
+        drawText(ctx, sticker);
       }
 
       // Draw selection border & resize handles
       if (sticker.id === selectedStickerId) {
-        ctx.strokeStyle = "#007bff";
-        ctx.lineWidth = 2;
-        ctx.strokeRect(sticker.x, sticker.y, sticker.width, sticker.height);
-
-        drawResizeHandle(ctx, sticker.x, sticker.y);
-        drawResizeHandle(ctx, sticker.x + sticker.width, sticker.y);
-        drawResizeHandle(ctx, sticker.x, sticker.y + sticker.height);
-        drawResizeHandle(
-          ctx,
-          sticker.x + sticker.width,
-          sticker.y + sticker.height
-        );
+        drawResizableBorder(ctx, sticker);
       }
     });
 
     if (setOutputImage) {
-      const dataUrl = canvas.toDataURL();
-      setOutputImage(dataUrl, stickers);
+      exportImage(canvas);
     }
   };
 
