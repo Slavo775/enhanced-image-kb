@@ -1,4 +1,4 @@
-import { FunctionComponent, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useCanvas } from "../../hooks/canvas/useCanvas";
 import { ImageCanvas } from "./Canvas";
 
@@ -11,14 +11,14 @@ export type Props = {
   rotation: number;
 };
 
-export const EnhancedImage: FunctionComponent<Props> = ({
+export function EnhancedImage({
   id,
   image,
   cropWidth,
   cropHeight,
   zoom,
   rotation,
-}) => {
+}: Props) {
   const { initCanvas } = useCanvas(id);
   const [wasInitialized, setWasInitialized] = useState(false);
   useEffect(() => {
@@ -33,4 +33,4 @@ export const EnhancedImage: FunctionComponent<Props> = ({
   }, []);
 
   return <>{wasInitialized && <ImageCanvas id={id} />}</>;
-};
+}

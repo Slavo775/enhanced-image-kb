@@ -1,4 +1,3 @@
-import { FunctionComponent } from "react";
 export type Props = {
     id: string;
     image: string;
@@ -7,4 +6,4 @@ export type Props = {
     zoom: number;
     rotation: number;
 };
-export declare const EnhancedImage: FunctionComponent<Props>;
+export declare function EnhancedImage({ id, image, cropWidth, cropHeight, zoom, rotation, }: Props): import("react/jsx-runtime").JSX.Element;
