@@ -14,7 +14,6 @@ export const useCanvas = (canvasId: string) => {
   const canvas = useMemo(() => canvases[canvasId], [canvases]);
 
   const initCanvas = (data: CanvasProps) => {
-    console.log("init", data, canvasId);
     addCanvas(data, canvasId);
   };
 

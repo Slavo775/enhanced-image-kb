@@ -9,12 +9,10 @@ export const useImageExporter = (canvasId: string) => {
 
   const exportFinalImage = async (): Promise<FinalImageResult | null> => {
     setSelectedSticker(undefined);
-    console.log("haloooo");
     // počkaj ~50ms aby sa canvas stihol prekresliť
     await new Promise((resolve) => setTimeout(resolve, 50));
 
     const image = useFinalImageStore.getState().getFinalImage();
-    console.log(image);
     return image;
   };
 
