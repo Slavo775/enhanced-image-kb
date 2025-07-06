@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useCanvasCrop } from "../../hooks/canvas/useCanvasCrop";
 import { useCanvasCropMouse } from "../../hooks/canvas/useCanvasCropMouse";
 import { useCanvasTouch } from "../../hooks/canvas/useCanvasTouch";
+import { useCanvasRefStore } from "../../stores/canvasRef";
 
 export type StickerType = "sticker" | "mention" | "location" | "emoji";
 
@@ -18,26 +19,10 @@ export type StickerInput = {
 };
 
 export type Props = {
-  image: string;
-  cropWidth: number;
-  cropHeight: number;
-  zoom: number;
-  rotation: number;
-  setOutputImage?: (dataUrl: string, metadata?: StickerInput[]) => void;
-  stickers: StickerInput[];
-  onStickersChange?: (updated: StickerInput[]) => void;
+  id: string;
 };
 
-export function ImageCanvas({
-  image,
-  cropWidth,
-  cropHeight,
-  zoom,
-  rotation,
-  setOutputImage,
-  stickers,
-  onStickersChange,
-}: Props) {
+export function ImageCanvas({ id }: Props) {
   const {
     canvasRef,
     clamp,
@@ -46,14 +31,7 @@ export function ImageCanvas({
     setPosition,
     position,
   } = useCanvasCrop({
-    image,
-    cropWidth,
-    cropHeight,
-    rotation,
-    initialZoom: zoom,
-    setOutputImage,
-    stickers,
-    onStickersChange,
+    canvasId: id,
   });
 
   const { onMouseDown, onMouseMove, onMouseUp } = useCanvasCropMouse(
@@ -85,6 +63,10 @@ export function ImageCanvas({
       canvas.removeEventListener("wheel", handleWheel);
     };
   }, [canvasRef, currentZoom]);
+
+  useEffect(() => {
+    useCanvasRefStore.getState().setCanvasRef(id, canvasRef);
+  }, [id]);
 
   return (
     <canvas

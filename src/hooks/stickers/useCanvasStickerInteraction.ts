@@ -1,16 +1,21 @@
 import { useRef, useEffect, useState } from "react";
 import { StickerInput } from "../../components/canvas/Canvas";
+import { useStickers } from "./useStickers";
 
 type ResizeCorner = "tl" | "tr" | "bl" | "br";
 
 export function useCanvasStickerInteraction(
   canvasRef: React.RefObject<HTMLCanvasElement | null>,
-  stickers: StickerInput[],
-  selectedStickerId?: string,
-  onStickersChange?: (updated: StickerInput[]) => void,
-  setIsDraggingSticker?: (isDragging: boolean) => void,
-  setSelectedStickerId?: (id?: string) => void
+  canvasId: string,
+  setIsDraggingSticker?: (isDragging: boolean) => void
 ) {
+  const {
+    stickers,
+    selectedSticker: selectedStickerId,
+    setSelectedSticker: setSelectedStickerId,
+    updateAllStickers: onStickersChange,
+  } = useStickers(canvasId);
+
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [resizingId, setResizingId] = useState<string | null>(null);
   const [resizeCorner, setResizeCorner] = useState<ResizeCorner | null>(null);
@@ -26,6 +31,7 @@ export function useCanvasStickerInteraction(
     x: number,
     y: number
   ): StickerInput | undefined => {
+    if (!stickers) return;
     for (let i = stickers.length - 1; i >= 0; i--) {
       const s = stickers[i];
       if (x >= s.x && x <= s.x + s.width && y >= s.y && y <= s.y + s.height) {
@@ -61,21 +67,20 @@ export function useCanvasStickerInteraction(
 
   const handlePointerDown = (x: number, y: number) => {
     // Najskôr check resize handles (iba pre vybrané sticker)
-    if (setSelectedStickerId) {
-      const selected = stickers.find((s) => s.id === selectedStickerId);
-      if (selected) {
-        const corner = getResizeCornerAtPosition(selected, x, y);
-        if (corner) {
-          setResizingId(selected.id);
-          setResizeCorner(corner);
-          startPosRef.current = { x, y };
-          startSizeRef.current = {
-            width: selected.width,
-            height: selected.height,
-          };
-          setIsDraggingSticker?.(true);
-          return;
-        }
+
+    const selected = stickers?.find((s) => s.id === selectedStickerId);
+    if (selected) {
+      const corner = getResizeCornerAtPosition(selected, x, y);
+      if (corner) {
+        setResizingId(selected.id);
+        setResizeCorner(corner);
+        startPosRef.current = { x, y };
+        startSizeRef.current = {
+          width: selected.width,
+          height: selected.height,
+        };
+        setIsDraggingSticker?.(true);
+        return;
       }
     }
 
@@ -97,7 +102,7 @@ export function useCanvasStickerInteraction(
       const dx = x - startPosRef.current.x;
       const dy = y - startPosRef.current.y;
 
-      const updated = stickers.map((s) => {
+      const updated = stickers?.map((s) => {
         if (s.id !== resizingId) return s;
         let newWidth = startSizeRef.current.width;
         let newHeight = startSizeRef.current.height;
@@ -150,13 +155,13 @@ export function useCanvasStickerInteraction(
           height: newHeight,
         };
       });
-      onStickersChange?.(updated);
+      updated && onStickersChange?.(updated);
       return;
     }
 
     if (!draggingId) return;
 
-    const updated = stickers.map((s) =>
+    const updated = stickers?.map((s) =>
       s.id === draggingId
         ? {
             ...s,
@@ -165,7 +170,7 @@ export function useCanvasStickerInteraction(
           }
         : s
     );
-    onStickersChange?.(updated);
+    updated && onStickersChange?.(updated);
   };
 
   const stopInteraction = () => {
@@ -185,23 +190,22 @@ export function useCanvasStickerInteraction(
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
 
-      if (setSelectedStickerId) {
-        const selected = stickers.find((s) => s.id === selectedStickerId);
-        if (selected) {
-          const corner = getResizeCornerAtPosition(selected, x, y);
-          if (corner) {
-            // kurzory pre jednotlivé rohy
-            const cursors: Record<ResizeCorner, string> = {
-              tl: "nwse-resize",
-              br: "nwse-resize",
-              tr: "nesw-resize",
-              bl: "nesw-resize",
-            };
-            canvas.style.cursor = cursors[corner];
-            return;
-          }
+      const selected = stickers?.find((s) => s.id === selectedStickerId);
+      if (selected) {
+        const corner = getResizeCornerAtPosition(selected, x, y);
+        if (corner) {
+          // kurzory pre jednotlivé rohy
+          const cursors: Record<ResizeCorner, string> = {
+            tl: "nwse-resize",
+            br: "nwse-resize",
+            tr: "nesw-resize",
+            bl: "nesw-resize",
+          };
+          canvas.style.cursor = cursors[corner];
+          return;
         }
       }
+
       // Default cursor
       canvas.style.cursor = draggingId || resizingId ? "grabbing" : "default";
     };

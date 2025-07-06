@@ -1,18 +1,11 @@
 import { StickerInput } from "../../components/canvas/Canvas";
 export type UseCanvasCropProps = {
-    image: string;
-    cropWidth: number;
-    cropHeight: number;
-    rotation: number;
-    initialZoom: number;
-    setOutputImage?: (dataUrl: string, metadata?: StickerInput[]) => void;
-    stickers: StickerInput[];
-    onStickersChange?: (updated: StickerInput[]) => void;
+    canvasId: string;
 };
-export declare function useCanvasCrop({ image, cropWidth, cropHeight, rotation, initialZoom, stickers, setOutputImage, onStickersChange, }: UseCanvasCropProps): {
+export declare function useCanvasCrop({ canvasId }: UseCanvasCropProps): {
     canvasRef: import("react").RefObject<HTMLCanvasElement | null>;
     clamp: (value: number, min: number, max: number) => number;
-    setCurrentZoom: import("react").Dispatch<import("react").SetStateAction<number>>;
+    setCurrentZoom: (currentZoom: number) => void;
     currentZoom: number;
     setPosition: (pos: {
         x: number;
@@ -22,4 +15,10 @@ export declare function useCanvasCrop({ image, cropWidth, cropHeight, rotation, 
         x: number;
         y: number;
     };
+    drawCanvas: () => {
+        dataUrl: string;
+        metaData: {
+            stickers: StickerInput[] | undefined;
+        };
+    } | undefined;
 };

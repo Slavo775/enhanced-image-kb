@@ -1,37 +1,29 @@
 // useCanvasCrop.ts
 import { useRef, useEffect, useState } from "react";
 import { StickerInput } from "../../components/canvas/Canvas";
-import { useCanvasStickerInteraction } from "../../hooks/canvas/useCanvasStickerInteraction";
+import { useCanvasStickerInteraction } from "../stickers/useCanvasStickerInteraction";
+import { useStickers } from "../stickers/useStickers";
+import { useCanvas } from "./useCanvas";
+import { useCanvasRefStore } from "../../stores/canvasRef";
+import { useFinalImageStore } from "../../stores/finalImageStore";
 
 export type UseCanvasCropProps = {
-  image: string;
-  cropWidth: number;
-  cropHeight: number;
-  rotation: number;
-  initialZoom: number;
-  setOutputImage?: (dataUrl: string, metadata?: StickerInput[]) => void;
-  stickers: StickerInput[];
-  onStickersChange?: (updated: StickerInput[]) => void;
+  canvasId: string;
 };
 
-export function useCanvasCrop({
-  image,
-  cropWidth,
-  cropHeight,
-  rotation,
-  initialZoom,
-  stickers,
-  setOutputImage,
-  onStickersChange,
-}: UseCanvasCropProps) {
+export function useCanvasCrop({ canvasId }: UseCanvasCropProps) {
+  const { canvasRefs } = useCanvasRefStore();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [position, setPositionState] = useState({ x: 0, y: 0 });
-  const [currentZoom, setCurrentZoom] = useState(initialZoom);
   const [isDraggingSticker, setIsDraggingSticker] = useState(false);
-  const [selectedStickerId, setSelectedStickerId] = useState<
-    string | undefined
-  >(undefined);
+
   const imgRef = useRef<HTMLImageElement | null>(null);
+  const { stickers, selectedSticker: selectedStickerId } =
+    useStickers(canvasId);
+  const {
+    canvas: { image, cropHeight, cropWidth, rotation, zoom: currentZoom },
+    setZoom: setCurrentZoom,
+  } = useCanvas(canvasId);
 
   const clamp = (value: number, min: number, max: number) => {
     return Math.min(Math.max(value, min), max);
@@ -80,7 +72,7 @@ export function useCanvasCrop({
   const imgCache = useRef<Record<string, HTMLImageElement>>({});
 
   const createCanvas = () => {
-    const canvas = canvasRef.current;
+    const canvas = canvasRef.current ?? canvasRefs[canvasId].current;
     const ctx = canvas?.getContext("2d");
     if (!canvas || !ctx || !imgRef.current) return;
 
@@ -155,16 +147,19 @@ export function useCanvasCrop({
 
   const exportImage = (canvas: HTMLCanvasElement) => {
     const dataUrl = canvas.toDataURL();
-    setOutputImage?.(dataUrl, stickers);
+    useFinalImageStore
+      .getState()
+      .setFinalImage({ dataUrl, metaData: { stickers: stickers ?? [] } });
+    return { dataUrl, metaData: { stickers } };
   };
 
   const drawCanvas = () => {
-    const canvas = canvasRef.current;
+    const canvas = canvasRef ?? canvasRefs[canvasId];
     const ctx = createCanvas();
-    if (!ctx || !canvas) return;
+    if (!ctx || !canvas.current) return;
 
     // Draw stickers
-    stickers.forEach((sticker) => {
+    stickers?.forEach((sticker) => {
       if (
         sticker.src.startsWith("data:image") ||
         sticker.src.startsWith("http")
@@ -181,18 +176,13 @@ export function useCanvasCrop({
       }
     });
 
-    if (setOutputImage) {
-      exportImage(canvas);
-    }
+    return exportImage(canvas.current);
   };
 
   useCanvasStickerInteraction(
-    canvasRef,
-    stickers,
-    selectedStickerId,
-    onStickersChange,
-    setIsDraggingSticker,
-    setSelectedStickerId
+    canvasRef ?? canvasRefs[canvasId],
+    canvasId,
+    setIsDraggingSticker
   );
 
   return {
@@ -202,5 +192,6 @@ export function useCanvasCrop({
     currentZoom,
     setPosition,
     position,
+    drawCanvas,
   };
 }

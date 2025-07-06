@@ -11,13 +11,6 @@ export type StickerInput = {
     payload?: Record<string, any>;
 };
 export type Props = {
-    image: string;
-    cropWidth: number;
-    cropHeight: number;
-    zoom: number;
-    rotation: number;
-    setOutputImage?: (dataUrl: string, metadata?: StickerInput[]) => void;
-    stickers: StickerInput[];
-    onStickersChange?: (updated: StickerInput[]) => void;
+    id: string;
 };
-export declare function ImageCanvas({ image, cropWidth, cropHeight, zoom, rotation, setOutputImage, stickers, onStickersChange, }: Props): import("react/jsx-runtime").JSX.Element;
+export declare function ImageCanvas({ id }: Props): import("react/jsx-runtime").JSX.Element;
