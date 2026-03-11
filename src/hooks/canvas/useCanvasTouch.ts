@@ -1,4 +1,5 @@
 import { useRef } from "react";
+import { TOUCH_ZOOM_STEP, ZOOM_MIN, ZOOM_MAX } from "../../constants";
 
 export function useCanvasTouch(
   setPosition: (x: number, y: number) => void,
@@ -39,8 +40,8 @@ export function useCanvasTouch(
       const dist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
       if (lastTouchDistance.current != null) {
         const delta = dist - lastTouchDistance.current;
-        const zoomChange = delta * 0.3;
-        setZoom(clamp(zoom + zoomChange, 10, 500));
+        const zoomChange = delta * TOUCH_ZOOM_STEP;
+        setZoom(clamp(zoom + zoomChange, ZOOM_MIN, ZOOM_MAX));
       }
       lastTouchDistance.current = dist;
     }

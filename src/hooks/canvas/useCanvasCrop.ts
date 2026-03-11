@@ -1,5 +1,6 @@
 // useCanvasCrop.ts
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useState, useCallback } from "react";
+import { RESIZE_HANDLE_SIZE } from "../../constants";
 import { StickerInput } from "../../components/canvas/Canvas";
 import { useCanvasStickerInteraction } from "../stickers/useCanvasStickerInteraction";
 import { useStickers } from "../stickers/useStickers";
@@ -18,12 +19,23 @@ export function useCanvasCrop({ canvasId }: UseCanvasCropProps) {
   const [isDraggingSticker, setIsDraggingSticker] = useState(false);
 
   const imgRef = useRef<HTMLImageElement | null>(null);
+  const rafRef = useRef<number | null>(null);
+  const drawCanvasFnRef = useRef<(() => void) | null>(null);
+
   const { stickers, selectedSticker: selectedStickerId } =
     useStickers(canvasId);
   const {
-    canvas: { image, cropHeight, cropWidth, rotation, zoom: currentZoom },
+    canvas: { image, cropHeight, cropWidth, rotation, zoom: currentZoom, brightness, contrast },
     setZoom: setCurrentZoom,
   } = useCanvas(canvasId);
+
+  const scheduleDraw = useCallback(() => {
+    if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = null;
+      drawCanvasFnRef.current?.();
+    });
+  }, []);
 
   const clamp = (value: number, min: number, max: number) => {
     return Math.min(Math.max(value, min), max);
@@ -44,21 +56,41 @@ export function useCanvasCrop({ canvasId }: UseCanvasCropProps) {
     setPositionState({ x: clampedX, y: clampedY });
   };
 
+  // Load image only when src changes — never recreate Image for zoom/position/sticker updates
   useEffect(() => {
+    if (!image) return;
     const img = new Image();
     img.onload = () => {
       imgRef.current = img;
-      drawCanvas();
+      scheduleDraw();
+    };
+    img.onerror = () => {
+      console.error("[useCanvasCrop] Failed to load image:", image.slice(0, 80));
     };
     img.src = image;
-  }, [image, currentZoom, position, rotation, stickers, selectedStickerId]);
+    return () => {
+      img.onload = null;
+      img.onerror = null;
+    };
+  }, [image]);
+
+  // Batch all visual redraws through rAF — multiple rapid changes = 1 draw per frame
+  useEffect(() => {
+    scheduleDraw();
+    return () => {
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
+    };
+  }, [currentZoom, position, rotation, stickers, selectedStickerId, brightness, contrast]);
 
   const drawResizeHandle = (
     ctx: CanvasRenderingContext2D,
     x: number,
     y: number
   ) => {
-    const size = 10;
+    const size = RESIZE_HANDLE_SIZE;
     ctx.save();
     ctx.fillStyle = "#007bff";
     ctx.strokeStyle = "#fff";
@@ -86,11 +118,13 @@ export function useCanvasCrop({ canvasId }: UseCanvasCropProps) {
     ctx.translate(position.x + cropWidth / 2, position.y + cropHeight / 2);
     ctx.rotate((rotation * Math.PI) / 180);
     ctx.scale(scale, scale);
+    ctx.filter = `brightness(${(brightness ?? 100) / 100}) contrast(${(contrast ?? 100) / 100})`;
     ctx.drawImage(
       imgRef.current,
       -imgRef.current.width / 2,
       -imgRef.current.height / 2
     );
+    ctx.filter = "none";
     ctx.restore();
 
     return ctx;
@@ -105,8 +139,7 @@ export function useCanvasCrop({ canvasId }: UseCanvasCropProps) {
       stickerImg = new Image();
       stickerImg.src = sticker.src;
       imgCache.current[sticker.src] = stickerImg;
-      // Po načítaní obrázka prekresli canvas
-      stickerImg.onload = () => drawCanvas();
+      stickerImg.onload = () => scheduleDraw();
       return; // preruš vykresľovanie teraz, vykreslí sa po načítaní
     }
     if (stickerImg.complete) {
@@ -125,6 +158,65 @@ export function useCanvasCrop({ canvasId }: UseCanvasCropProps) {
     ctx.textAlign = "left";
     ctx.textBaseline = "top";
     ctx.fillText(sticker.src, sticker.x, sticker.y);
+  };
+
+  const roundedRect = (
+    ctx: CanvasRenderingContext2D,
+    x: number,
+    y: number,
+    w: number,
+    h: number,
+    r: number
+  ) => {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - r);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
+  };
+
+  const drawMention = (ctx: CanvasRenderingContext2D, sticker: StickerInput) => {
+    const text = `@${sticker.src}`;
+    const fontSize = Math.round(sticker.height * 0.52);
+    const radius = sticker.height / 2;
+    ctx.save();
+    ctx.fillStyle = "rgba(0,0,0,0.65)";
+    roundedRect(ctx, sticker.x, sticker.y, sticker.width, sticker.height, radius);
+    ctx.fill();
+    ctx.fillStyle = "#ffffff";
+    ctx.font = `bold ${fontSize}px sans-serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(text, sticker.x + sticker.width / 2, sticker.y + sticker.height / 2);
+    ctx.restore();
+  };
+
+  const drawLocation = (ctx: CanvasRenderingContext2D, sticker: StickerInput) => {
+    const fontSize = Math.round(sticker.height * 0.48);
+    const radius = sticker.height / 2;
+    const dotR = sticker.height * 0.18;
+    const dotX = sticker.x + radius;
+    const dotY = sticker.y + sticker.height / 2;
+    ctx.save();
+    ctx.fillStyle = "rgba(0,0,0,0.65)";
+    roundedRect(ctx, sticker.x, sticker.y, sticker.width, sticker.height, radius);
+    ctx.fill();
+    ctx.fillStyle = "#ff4444";
+    ctx.beginPath();
+    ctx.arc(dotX, dotY, dotR, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#ffffff";
+    ctx.font = `bold ${fontSize}px sans-serif`;
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    ctx.fillText(sticker.src, dotX + dotR * 2, dotY);
+    ctx.restore();
   };
 
   const drawResizableBorder = (
@@ -160,14 +252,18 @@ export function useCanvasCrop({ canvasId }: UseCanvasCropProps) {
 
     // Draw stickers
     stickers?.forEach((sticker) => {
-      if (
-        sticker.src.startsWith("data:image") ||
-        sticker.src.startsWith("http")
-      ) {
-        drawImageSticker(ctx, sticker);
-      } else {
-        // Render emoji or text as sticker
-        drawText(ctx, sticker);
+      switch (sticker.type) {
+        case "mention":
+          drawMention(ctx, sticker);
+          break;
+        case "location":
+          drawLocation(ctx, sticker);
+          break;
+        case "emoji":
+          drawText(ctx, sticker);
+          break;
+        default: // "sticker"
+          drawImageSticker(ctx, sticker);
       }
 
       // Draw selection border & resize handles
@@ -178,6 +274,9 @@ export function useCanvasCrop({ canvasId }: UseCanvasCropProps) {
 
     return exportImage(canvas.current);
   };
+
+  // Keep ref pointing to latest drawCanvas so scheduleDraw never has stale closures
+  drawCanvasFnRef.current = drawCanvas;
 
   useCanvasStickerInteraction(
     canvasRef ?? canvasRefs[canvasId],

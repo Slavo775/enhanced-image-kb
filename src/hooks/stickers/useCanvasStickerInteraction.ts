@@ -14,6 +14,8 @@ export function useCanvasStickerInteraction(
     selectedSticker: selectedStickerId,
     setSelectedSticker: setSelectedStickerId,
     updateAllStickers: onStickersChange,
+    pauseHistory,
+    resumeHistory,
   } = useStickers(canvasId);
 
   const [draggingId, setDraggingId] = useState<string | null>(null);
@@ -66,8 +68,7 @@ export function useCanvasStickerInteraction(
   };
 
   const handlePointerDown = (x: number, y: number) => {
-    // Najskôr check resize handles (iba pre vybrané sticker)
-
+    pauseHistory();
     const selected = stickers?.find((s) => s.id === selectedStickerId);
     if (selected) {
       const corner = getResizeCornerAtPosition(selected, x, y);
@@ -174,6 +175,7 @@ export function useCanvasStickerInteraction(
   };
 
   const stopInteraction = () => {
+    resumeHistory();
     setDraggingId(null);
     setResizingId(null);
     setResizeCorner(null);

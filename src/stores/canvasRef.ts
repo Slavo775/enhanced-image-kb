@@ -8,10 +8,10 @@ type CanvasRefStore = {
   ) => void;
 };
 
-export const useCanvasRefStore = create<CanvasRefStore>(() => ({
+export const useCanvasRefStore = create<CanvasRefStore>((set) => ({
   canvasRefs: {},
-  setCanvasRef: (canvasId, ref) => {
-    // priamo mutuj referenciu (je to bezpečné, keďže je to ako `ref`)
-    useCanvasRefStore.getState().canvasRefs[canvasId] = ref;
-  },
+  setCanvasRef: (canvasId, ref) =>
+    set((state) => ({
+      canvasRefs: { ...state.canvasRefs, [canvasId]: ref },
+    })),
 }));

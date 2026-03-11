@@ -9,6 +9,8 @@ export type Props = {
   cropHeight: number;
   zoom: number;
   rotation: number;
+  brightness?: number;
+  contrast?: number;
 };
 
 export function EnhancedImage({
@@ -18,6 +20,8 @@ export function EnhancedImage({
   cropHeight,
   zoom,
   rotation,
+  brightness = 100,
+  contrast = 100,
 }: Props) {
   const { initCanvas } = useCanvas(id);
   const [wasInitialized, setWasInitialized] = useState(false);
@@ -28,6 +32,8 @@ export function EnhancedImage({
       cropHeight,
       cropWidth,
       rotation,
+      brightness,
+      contrast,
     });
     setWasInitialized(true);
   }, []);

@@ -1,14 +1,6 @@
 import { useMemo } from "react";
 import useCanvasStore, { CanvasProps } from "../../stores/canvas";
 
-// type CanvasProps = {
-//   image: string;
-//   cropWidth: number;
-//   cropHeight: number;
-//   rotation: number;
-//   zoom: number;
-// };
-
 export const useCanvas = (canvasId: string) => {
   const { canvases, updateCanvas, addCanvas } = useCanvasStore();
   const canvas = useMemo(() => canvases[canvasId], [canvases]);
@@ -27,5 +19,15 @@ export const useCanvas = (canvasId: string) => {
     updateCanvas({ ...canvas, rotation }, canvasId);
   };
 
-  return { canvas: canvas, setZoom, setRotation, initCanvas };
+  const setBrightness = (brightness: number) => {
+    if (!canvas) return;
+    updateCanvas({ ...canvas, brightness }, canvasId);
+  };
+
+  const setContrast = (contrast: number) => {
+    if (!canvas) return;
+    updateCanvas({ ...canvas, contrast }, canvasId);
+  };
+
+  return { canvas: canvas, setZoom, setRotation, setBrightness, setContrast, initCanvas };
 };

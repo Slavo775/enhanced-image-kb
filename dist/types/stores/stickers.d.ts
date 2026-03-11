@@ -10,5 +10,13 @@ type StickersStore = {
     updateAll: (sticker: StickerInput[], canvasId: string) => void;
     removeSticker: (stickerId: string, canvasId: string) => void;
 };
-export declare const useStickerStore: import("zustand").UseBoundStore<import("zustand").StoreApi<StickersStore>>;
+export declare const useStickerStore: import("zustand").UseBoundStore<Omit<import("zustand").StoreApi<StickersStore>, "temporal"> & {
+    temporal: import("zustand").StoreApi<import("zundo").TemporalState<{
+        stickers: Record<string, {
+            stickers: StickerInput[];
+        }> | undefined;
+    }>>;
+}>;
+type TemporalState = ReturnType<typeof useStickerStore.temporal.getState>;
+export declare const useTemporalStickerStore: <T>(selector: (state: TemporalState) => T) => T;
 export {};

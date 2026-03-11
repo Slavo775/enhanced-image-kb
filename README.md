@@ -1,77 +1,137 @@
-# React Image Editor
+# react-enhanced-image
 
-A powerful, lightweight React image editor component with drag-and-drop functionality, stickers, cropping, and export capabilities.
-
-## Features
-
-- 🖼️ **Image Upload** - Drag & drop or click to upload images
-- ✂️ **Crop Tool** - Select and crop image areas
-- 🎭 **Stickers** - Add emojis, text, mentions, and locations
-- 🔄 **Image Controls** - Scale, rotation, opacity, filters
-- 📱 **Mobile Support** - Touch-friendly interactions
-- 💾 **Export** - Download PNG or copy to clipboard
-- 🎨 **No Dependencies** - Pure React with inline styles
+React canvas image editor — pan, zoom, rotation, SVG/PNG stickers, mentions, locations and image export.
 
 ## Installation
 
-\`\`\`bash
-npm install react-image-editor
+```bash
+npm install react-enhanced-image
 # or
-pnpm install react-image-editor
+pnpm add react-enhanced-image
 # or
-yarn add react-image-editor
-\`\`\`
+yarn add react-enhanced-image
+```
 
-## Usage
+**Peer dependencies** — install alongside the package:
+```bash
+npm install react react-dom zustand
+```
 
-\`\`\`tsx
-import { ImageEditor } from 'react-image-editor'
+## Quick start
+
+```tsx
+import { EnhancedImage, useStickers, useImageExporter } from 'react-enhanced-image'
 
 function App() {
-  const handleStateChange = (state) => {
-    console.log('Editor state:', state)
-  }
+  const { addSticker, addMentionSticker, addLocationSticker } = useStickers('my-canvas')
+  const { exportFinalImage } = useImageExporter('my-canvas')
 
-  const handleExport = (canvas) => {
-    // Handle the exported canvas
-    console.log('Exported canvas:', canvas)
+  const handleExport = async () => {
+    const result = await exportFinalImage()
+    console.log(result?.dataUrl) // base64 PNG
   }
 
   return (
-    <ImageEditor
-      width={600}
-      height={400}
-      onStateChange={handleStateChange}
-      onExport={handleExport}
-    />
+    <>
+      <EnhancedImage
+        id="my-canvas"
+        image={imageDataUrl}
+        cropWidth={600}
+        cropHeight={600}
+        zoom={100}
+        rotation={0}
+      />
+
+      <button onClick={() => addMentionSticker('john')}>@john</button>
+      <button onClick={() => addLocationSticker('Bratislava')}>📍 Bratislava</button>
+      <button onClick={handleExport}>Export</button>
+    </>
   )
 }
-\`\`\`
+```
 
-## Props
+## API
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `width` | `number` | `600` | Canvas width in pixels |
-| `height` | `number` | `400` | Canvas height in pixels |
-| `onStateChange` | `(state: EditorState) => void` | - | Called when editor state changes |
-| `onExport` | `(canvas: HTMLCanvasElement) => void` | - | Called when image is exported |
+### `<EnhancedImage />`
+
+| Prop | Type | Description |
+|------|------|-------------|
+| `id` | `string` | Unique canvas identifier — must match `useStickers` and `useImageExporter` |
+| `image` | `string` | Image source as data URL or HTTP URL |
+| `cropWidth` | `number` | Canvas width in pixels |
+| `cropHeight` | `number` | Canvas height in pixels |
+| `zoom` | `number` | Initial zoom level (100 = 100%) |
+| `rotation` | `number` | Initial rotation in degrees |
+
+### `useStickers(canvasId)`
+
+```ts
+const {
+  stickers,              // StickerInput[] | undefined — current stickers
+  selectedSticker,       // string | undefined — selected sticker id
+  addSticker,            // (svgString | dataUrl: string) => void
+  addMentionSticker,     // (username: string) => void  — renders @username pill
+  addLocationSticker,    // (locationName: string) => void — renders 📍 location pill
+  removeSticker,         // (id: string) => void
+  setSelectedSticker,    // (id?: string) => void
+  updateSticker,         // (sticker: StickerInput) => void
+  updateAllStickers,     // (stickers: StickerInput[]) => void
+} = useStickers('my-canvas')
+```
+
+### `useImageExporter(canvasId)`
+
+```ts
+const { exportFinalImage } = useImageExporter('my-canvas')
+
+const result = await exportFinalImage()
+// result: { dataUrl: string, metaData: { stickers: StickerInput[] } }
+```
+
+### `StickerInput`
+
+```ts
+type StickerInput = {
+  id: string
+  type: 'sticker' | 'mention' | 'location' | 'emoji'
+  src: string        // data URL for images, username/location name for text types
+  x: number
+  y: number
+  width: number
+  height: number
+  payload?: Record<string, unknown>
+}
+```
+
+## Sticker types
+
+| Type | `src` value | Renders |
+|------|------------|---------|
+| `sticker` | SVG string or data URL (PNG/JPG) | Image on canvas |
+| `mention` | username without `@` | `@username` dark pill |
+| `location` | location name | Red dot + location name dark pill |
+| `emoji` | emoji character or text | Text rendered directly |
+
+## Gestures
+
+| Gesture | Action |
+|---------|--------|
+| Mouse drag | Pan image |
+| Mouse wheel | Zoom in/out |
+| Two-finger pinch | Zoom in/out (touch) |
+| Single finger drag | Pan image (touch) |
+| Click sticker | Select sticker |
+| Drag selected sticker | Move sticker |
+| Drag corner handle | Resize sticker |
 
 ## Development
 
-\`\`\`bash
-# Install dependencies
+```bash
 pnpm install
-
-# Start development server
-pnpm dev
-
-# Build for production
-pnpm build
-
-# Run linting
+pnpm dev      # demo app at localhost:5173
+pnpm build    # build library to dist/
 pnpm lint
-\`\`\`
+```
 
 ## License
 

@@ -8,7 +8,7 @@ export type StickerInput = {
     width: number;
     height: number;
     action?: () => void;
-    payload?: Record<string, any>;
+    payload?: Record<string, unknown>;
 };
 export type Props = {
     id: string;

@@ -15,15 +15,16 @@ export default defineConfig({
     ? {
         lib: {
           entry: path.resolve(__dirname, "src/index.ts"),
-          name: "ReactEnahncedImage",
+          name: "ReactEnhancedImage",
           fileName: (format) => `react-enhanced-image.${format}.js`,
         },
         rollupOptions: {
-          external: ["react", "react-dom"],
+          external: ["react", "react-dom", "zustand"],
           output: {
             globals: {
               react: "React",
               "react-dom": "ReactDOM",
+              zustand: "Zustand",
             },
           },
         },

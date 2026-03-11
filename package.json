@@ -1,20 +1,45 @@
 {
   "name": "react-enhanced-image",
-  "version": "1.0.0",
-  "private": true,
+  "version": "0.1.0",
+  "description": "React canvas image editor with stickers, pan, zoom and rotation",
+  "keywords": [
+    "react",
+    "image",
+    "canvas",
+    "editor",
+    "stickers",
+    "crop",
+    "zoom"
+  ],
+  "license": "MIT",
   "type": "module",
+  "files": [
+    "dist"
+  ],
+  "main": "dist/react-enhanced-image.umd.js",
+  "module": "dist/react-enhanced-image.es.js",
+  "types": "dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/react-enhanced-image.es.js",
+      "require": "./dist/react-enhanced-image.umd.js"
+    }
+  },
   "scripts": {
     "dev": "vite",
     "build": "BUILD_LIB=true vite build && pnpm typegen",
-    "typegen": "tsc",
+    "typegen": "tsc -p tsconfig.lib.json",
     "lint": "eslint . --ext ts,tsx"
+  },
+  "peerDependencies": {
+    "react": ">=18",
+    "react-dom": ">=18",
+    "zustand": ">=5"
   },
   "dependencies": {
     "clsx": "^2.1.1",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "typescript-eslint": "latest",
-    "zustand": "^5.0.6"
+    "zundo": "^2.3.0"
   },
   "devDependencies": {
     "@types/node": "^24.0.10",
@@ -26,17 +51,11 @@
     "eslint": "^9.30.1",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
     "typescript": "^5.8.3",
-    "vite": "^7.0.2"
-  },
-  "main": "dist/react-enhanced-image.umd.js",
-  "module": "dist/react-enhanced-image.es.js",
-  "types": "dist/types/src/index.d.ts",
-  "exports": {
-    ".": {
-      "import": "./dist/react-enhanced-image.es.js",
-      "require": "./dist/react-enhanced-image.umd.js",
-      "types": "./dist/types/src/index.d.ts"
-    }
+    "typescript-eslint": "latest",
+    "vite": "^7.0.2",
+    "zustand": "^5.0.6"
   }
 }

@@ -2,22 +2,34 @@ import React, { useState } from "react";
 import { useStickers } from "../src/hooks/stickers/useStickers";
 import { EnhancedImage } from "../src";
 import { useImageExporter } from "../src/hooks/canvas/useImageExporter";
+import { useCanvas } from "../src/hooks/canvas/useCanvas";
+
+const CANVAS_ID = "test-canvas";
 
 const App = () => {
   const [originalImage, setOriginalImage] = useState<string | null>(null);
   const [outputImage, setOutputImage] = useState<string | null>(null);
   const [mention, setMention] = useState("");
   const [location, setLocation] = useState("");
-  const { exportFinalImage } = useImageExporter("test-canvas");
-  const { addSticker } = useStickers("test-canvas");
+
+  const { exportFinalImage } = useImageExporter(CANVAS_ID);
+  const {
+    addSticker,
+    addMentionSticker,
+    addLocationSticker,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+  } = useStickers(CANVAS_ID);
+
+  const { canvas, setBrightness, setContrast } = useCanvas(CANVAS_ID);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setOriginalImage(reader.result as string);
-      };
+      reader.onloadend = () => setOriginalImage(reader.result as string);
       reader.readAsDataURL(file);
     }
   };
@@ -34,6 +46,7 @@ const App = () => {
       <div style={{ marginBottom: "20px" }}>
         <h2>2. Edit Image</h2>
 
+        {/* Stickers */}
         <div style={{ marginBottom: "10px" }}>
           <button
             onClick={() =>
@@ -75,6 +88,7 @@ const App = () => {
           </button>
         </div>
 
+        {/* Mention */}
         <div style={{ marginBottom: "10px" }}>
           <input
             type="text"
@@ -83,9 +97,10 @@ const App = () => {
             onChange={(e) => setMention(e.target.value)}
             style={{ marginRight: "10px" }}
           />
-          <button onClick={() => alert("WIP")}>Add Mention</button>
+          <button onClick={() => { addMentionSticker(mention); setMention(""); }}>Add Mention</button>
         </div>
 
+        {/* Location */}
         <div style={{ marginBottom: "10px" }}>
           <input
             type="text"
@@ -94,18 +109,58 @@ const App = () => {
             onChange={(e) => setLocation(e.target.value)}
             style={{ marginRight: "10px" }}
           />
-          <button onClick={() => alert("WIP")}>Add Location</button>
+          <button onClick={() => { addLocationSticker(location); setLocation(""); }}>Add Location</button>
         </div>
+
+        {/* Undo / Redo */}
+        <div style={{ marginBottom: "10px" }}>
+          <button onClick={undo} disabled={!canUndo} style={{ marginRight: "8px" }}>
+            ↩ Undo
+          </button>
+          <button onClick={redo} disabled={!canRedo}>
+            ↪ Redo
+          </button>
+          <span style={{ marginLeft: "12px", fontSize: "12px", color: "#666" }}>
+            (keyboard: ⌘Z / ⌘⇧Z · Delete = remove selected · ⌘D = duplicate)
+          </span>
+        </div>
+
+        {/* Filters */}
+        {canvas && (
+          <div style={{ marginBottom: "10px" }}>
+            <label style={{ marginRight: "16px" }}>
+              Brightness: {canvas.brightness ?? 100}%
+              <input
+                type="range"
+                min={0}
+                max={200}
+                value={canvas.brightness ?? 100}
+                onChange={(e) => setBrightness(Number(e.target.value))}
+                style={{ marginLeft: "8px" }}
+              />
+            </label>
+            <label>
+              Contrast: {canvas.contrast ?? 100}%
+              <input
+                type="range"
+                min={0}
+                max={200}
+                value={canvas.contrast ?? 100}
+                onChange={(e) => setContrast(Number(e.target.value))}
+                style={{ marginLeft: "8px" }}
+              />
+            </label>
+          </div>
+        )}
 
         {originalImage && (
           <EnhancedImage
-            id="test-canvas"
+            id={CANVAS_ID}
             image={originalImage}
             cropWidth={600}
             cropHeight={600}
             zoom={50}
             rotation={0}
-            // setOutputImage={setOutputImage}
           />
         )}
       </div>
@@ -115,8 +170,8 @@ const App = () => {
         <h2>3. Output Image</h2>
         <button
           onClick={async () => {
-            console.log(await exportFinalImage());
-            return setOutputImage((await exportFinalImage())?.dataUrl ?? "");
+            const result = await exportFinalImage();
+            setOutputImage(result?.dataUrl ?? "");
           }}
         >
           Export

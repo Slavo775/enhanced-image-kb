@@ -4,6 +4,8 @@ export type CanvasProps = {
     cropHeight: number;
     rotation: number;
     zoom: number;
+    brightness: number;
+    contrast: number;
 };
 type CanvasStore = {
     canvases: Record<string, CanvasProps>;

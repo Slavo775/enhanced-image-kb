@@ -6,6 +6,8 @@ export type CanvasProps = {
   cropHeight: number;
   rotation: number;
   zoom: number;
+  brightness: number; // 0–200, 100 = no change
+  contrast: number;   // 0–200, 100 = no change
 };
 
 type CanvasStore = {

@@ -1,8 +1,10 @@
-import { useEffect } from "react";
+import { useEffect, useRef, useCallback } from "react";
+import { ZOOM_STEP, ZOOM_MIN, ZOOM_MAX } from "../../constants";
 import { useCanvasCrop } from "../../hooks/canvas/useCanvasCrop";
 import { useCanvasCropMouse } from "../../hooks/canvas/useCanvasCropMouse";
 import { useCanvasTouch } from "../../hooks/canvas/useCanvasTouch";
 import { useCanvasRefStore } from "../../stores/canvasRef";
+import { useKeyboardShortcuts } from "../../hooks/canvas/useKeyboardShortcuts";
 
 export type StickerType = "sticker" | "mention" | "location" | "emoji";
 
@@ -15,7 +17,7 @@ export type StickerInput = {
   width: number;
   height: number;
   action?: () => void;
-  payload?: Record<string, any>;
+  payload?: Record<string, unknown>;
 };
 
 export type Props = {
@@ -47,12 +49,22 @@ export function ImageCanvas({ id }: Props) {
     clamp
   );
 
-  const handleWheel = (e: WheelEvent) => {
+  const currentZoomRef = useRef(currentZoom);
+  currentZoomRef.current = currentZoom;
+  const wheelRafRef = useRef<number | null>(null);
+  const accumulatedDelta = useRef(0);
+
+  const handleWheel = useCallback((e: WheelEvent) => {
     e.preventDefault();
-    const delta = -e.deltaY;
-    const zoomChange = delta * 0.1;
-    setCurrentZoom(currentZoom + zoomChange);
-  };
+    accumulatedDelta.current += -e.deltaY * ZOOM_STEP;
+    if (wheelRafRef.current !== null) return;
+    wheelRafRef.current = requestAnimationFrame(() => {
+      wheelRafRef.current = null;
+      const next = currentZoomRef.current + accumulatedDelta.current;
+      setCurrentZoom(Math.min(Math.max(next, ZOOM_MIN), ZOOM_MAX));
+      accumulatedDelta.current = 0;
+    });
+  }, [setCurrentZoom]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -61,12 +73,15 @@ export function ImageCanvas({ id }: Props) {
     canvas.addEventListener("wheel", handleWheel, { passive: false });
     return () => {
       canvas.removeEventListener("wheel", handleWheel);
+      if (wheelRafRef.current !== null) cancelAnimationFrame(wheelRafRef.current);
     };
-  }, [canvasRef, currentZoom]);
+  }, [canvasRef, handleWheel]);
 
   useEffect(() => {
     useCanvasRefStore.getState().setCanvasRef(id, canvasRef);
   }, [id]);
+
+  useKeyboardShortcuts(id);
 
   return (
     <canvas
