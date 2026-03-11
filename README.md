@@ -62,20 +62,29 @@ function App() {
 | `cropHeight` | `number` | Canvas height in pixels |
 | `zoom` | `number` | Initial zoom level (100 = 100%) |
 | `rotation` | `number` | Initial rotation in degrees |
+| `brightness` | `number` | Initial brightness (0–200, 100 = default). Adjustable at runtime via `useCanvas` |
+| `contrast` | `number` | Initial contrast (0–200, 100 = default). Adjustable at runtime via `useCanvas` |
 
 ### `useStickers(canvasId)`
 
 ```ts
 const {
-  stickers,              // StickerInput[] | undefined — current stickers
-  selectedSticker,       // string | undefined — selected sticker id
-  addSticker,            // (svgString | dataUrl: string) => void
-  addMentionSticker,     // (username: string) => void  — renders @username pill
-  addLocationSticker,    // (locationName: string) => void — renders 📍 location pill
-  removeSticker,         // (id: string) => void
-  setSelectedSticker,    // (id?: string) => void
-  updateSticker,         // (sticker: StickerInput) => void
-  updateAllStickers,     // (stickers: StickerInput[]) => void
+  stickers,                  // StickerInput[] | undefined — current stickers
+  selectedSticker,           // string | undefined — selected sticker id
+  addSticker,                // (svgString | dataUrl: string) => void
+  addMentionSticker,         // (username: string) => void — renders @username pill
+  addLocationSticker,        // (locationName: string) => void — renders 📍 location pill
+  removeSticker,             // (id: string) => void
+  setSelectedSticker,        // (id?: string) => void
+  updateSticker,             // (sticker: StickerInput) => void
+  updateAllStickers,         // (stickers: StickerInput[]) => void
+  undo,                      // () => void
+  redo,                      // () => void
+  canUndo,                   // boolean
+  canRedo,                   // boolean
+  copySelectedSticker,       // () => void — copies selected sticker to clipboard
+  pasteSticker,              // () => void — pastes clipboard sticker (+15px offset)
+  duplicateSelectedSticker,  // () => void — duplicate in place (+15px offset)
 } = useStickers('my-canvas')
 ```
 
@@ -85,7 +94,30 @@ const {
 const { exportFinalImage } = useImageExporter('my-canvas')
 
 const result = await exportFinalImage()
-// result: { dataUrl: string, metaData: { stickers: StickerInput[] } }
+```
+
+`result` is `FinalImageResult | null`:
+
+```ts
+type FinalImageResult = {
+  dataUrl: string           // base64 PNG — the full rendered canvas (image + all stickers)
+  metaData: {
+    stickers: StickerInput[] // all stickers at time of export with their positions and sizes
+  }
+}
+```
+
+**Use case — save & restore sticker positions:**
+
+```ts
+// Export
+const result = await exportFinalImage()
+const flat = result.dataUrl          // send to server / display in <img>
+const layout = result.metaData.stickers // save to DB to restore later
+
+// Restore — pass stickers back via updateAllStickers
+const { updateAllStickers } = useStickers('my-canvas')
+updateAllStickers(layout)
 ```
 
 ### `StickerInput`

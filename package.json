@@ -1,6 +1,6 @@
 {
   "name": "react-enhanced-image",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "React canvas image editor with stickers, pan, zoom and rotation",
   "keywords": [
     "react",
