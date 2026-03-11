@@ -19,12 +19,11 @@ export default defineConfig({
           fileName: (format) => `react-enhanced-image.${format}.js`,
         },
         rollupOptions: {
-          external: ["react", "react-dom", "zustand"],
+          external: ["react", "react-dom"],
           output: {
             globals: {
               react: "React",
               "react-dom": "ReactDOM",
-              zustand: "Zustand",
             },
           },
         },

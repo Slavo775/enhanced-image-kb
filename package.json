@@ -1,6 +1,6 @@
 {
   "name": "react-enhanced-image",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "React canvas image editor with stickers, pan, zoom and rotation",
   "keywords": [
     "react",
@@ -34,12 +34,12 @@
   },
   "peerDependencies": {
     "react": ">=18",
-    "react-dom": ">=18",
-    "zustand": ">=5"
+    "react-dom": ">=18"
   },
   "dependencies": {
     "clsx": "^2.1.1",
-    "zundo": "^2.3.0"
+    "zundo": "^2.3.0",
+    "zustand": "^5.0.6"
   },
   "devDependencies": {
     "@types/node": "^24.0.10",

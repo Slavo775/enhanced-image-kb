@@ -168,7 +168,7 @@ Potrebuješ: `NPM_TOKEN` secret v GitHub repo settings (z `npm token create`).
 [x] README.md prepísaný so správnym API
 [x] pnpm build — OK, 26.9kB ES / 18.7kB UMD, 19 súborov
 [x] npm publish --dry-run — OK ✅
-[ ] npm login
-[ ] npm publish
-[ ] git push && git push --tags
+[x] npm login (token v ~/.npmrc)
+[x] npm publish → react-enhanced-image@0.1.0 ✅
+[x] git push && git push --tags (tag v0.1.0) ✅
 ```

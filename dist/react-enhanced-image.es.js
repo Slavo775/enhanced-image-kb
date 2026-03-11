@@ -1,5 +1,4 @@
-import ve, { useMemo as oe, useRef as z, useState as q, useEffect as $, useCallback as le } from "react";
-import { create as Q, createStore as pe, useStore as we } from "zustand";
+import oe, { useMemo as se, useRef as z, useState as q, useEffect as $, useCallback as he } from "react";
 var G = { exports: {} }, Z = {};
 /**
  * @license React
@@ -10,27 +9,27 @@ var G = { exports: {} }, Z = {};
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-var se;
-function ye() {
-  if (se) return Z;
-  se = 1;
-  var n = Symbol.for("react.transitional.element"), a = Symbol.for("react.fragment");
-  function s(o, c, i) {
+var ae;
+function Ee() {
+  if (ae) return Z;
+  ae = 1;
+  var r = Symbol.for("react.transitional.element"), o = Symbol.for("react.fragment");
+  function s(a, c, i) {
     var S = null;
     if (i !== void 0 && (S = "" + i), c.key !== void 0 && (S = "" + c.key), "key" in c) {
       i = {};
-      for (var h in c)
-        h !== "key" && (i[h] = c[h]);
+      for (var f in c)
+        f !== "key" && (i[f] = c[f]);
     } else i = c;
     return c = i.ref, {
-      $$typeof: n,
-      type: o,
+      $$typeof: r,
+      type: a,
       key: S,
       ref: c !== void 0 ? c : null,
       props: i
     };
   }
-  return Z.Fragment = a, Z.jsx = s, Z.jsxs = s, Z;
+  return Z.Fragment = o, Z.jsx = s, Z.jsxs = s, Z;
 }
 var V = {};
 /**
@@ -42,18 +41,18 @@ var V = {};
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
-var ae;
-function be() {
-  return ae || (ae = 1, process.env.NODE_ENV !== "production" && function() {
-    function n(e) {
+var ce;
+function Re() {
+  return ce || (ce = 1, process.env.NODE_ENV !== "production" && function() {
+    function r(e) {
       if (e == null) return null;
       if (typeof e == "function")
-        return e.$$typeof === f ? null : e.displayName || e.name || null;
+        return e.$$typeof === h ? null : e.displayName || e.name || null;
       if (typeof e == "string") return e;
       switch (e) {
         case O:
           return "Fragment";
-        case C:
+        case x:
           return "Profiler";
         case P:
           return "StrictMode";
@@ -61,60 +60,60 @@ function be() {
           return "Suspense";
         case X:
           return "SuspenseList";
-        case g:
+        case v:
           return "Activity";
       }
       if (typeof e == "object")
         switch (typeof e.tag == "number" && console.error(
           "Received an unexpected object in getComponentNameFromType(). This is likely a bug in React. Please file an issue."
         ), e.$$typeof) {
-          case x:
+          case _:
             return "Portal";
           case U:
             return (e.displayName || "Context") + ".Provider";
           case L:
             return (e._context.displayName || "Context") + ".Consumer";
-          case I:
-            var l = e.render;
-            return e = e.displayName, e || (e = l.displayName || l.name || "", e = e !== "" ? "ForwardRef(" + e + ")" : "ForwardRef"), e;
+          case N:
+            var d = e.render;
+            return e = e.displayName, e || (e = d.displayName || d.name || "", e = e !== "" ? "ForwardRef(" + e + ")" : "ForwardRef"), e;
           case m:
-            return l = e.displayName || null, l !== null ? l : n(e.type) || "Memo";
+            return d = e.displayName || null, d !== null ? d : r(e.type) || "Memo";
           case u:
-            l = e._payload, e = e._init;
+            d = e._payload, e = e._init;
             try {
-              return n(e(l));
+              return r(e(d));
             } catch {
             }
         }
       return null;
     }
-    function a(e) {
+    function o(e) {
       return "" + e;
     }
     function s(e) {
       try {
-        a(e);
-        var l = !1;
+        o(e);
+        var d = !1;
       } catch {
-        l = !0;
+        d = !0;
       }
-      if (l) {
-        l = console;
-        var w = l.error, R = typeof Symbol == "function" && Symbol.toStringTag && e[Symbol.toStringTag] || e.constructor.name || "Object";
+      if (d) {
+        d = console;
+        var w = d.error, T = typeof Symbol == "function" && Symbol.toStringTag && e[Symbol.toStringTag] || e.constructor.name || "Object";
         return w.call(
-          l,
+          d,
           "The provided key is an unsupported type %s. This value must be coerced to a string before using it here.",
-          R
-        ), a(e);
+          T
+        ), o(e);
       }
     }
-    function o(e) {
+    function a(e) {
       if (e === O) return "<>";
       if (typeof e == "object" && e !== null && e.$$typeof === u)
         return "<...>";
       try {
-        var l = n(e);
-        return l ? "<" + l + ">" : "<...>";
+        var d = r(e);
+        return d ? "<" + d + ">" : "<...>";
       } catch {
         return "<...>";
       }
@@ -128,16 +127,16 @@ function be() {
     }
     function S(e) {
       if (k.call(e, "key")) {
-        var l = Object.getOwnPropertyDescriptor(e, "key").get;
-        if (l && l.isReactWarning) return !1;
+        var d = Object.getOwnPropertyDescriptor(e, "key").get;
+        if (d && d.isReactWarning) return !1;
       }
       return e.key !== void 0;
     }
-    function h(e, l) {
+    function f(e, d) {
       function w() {
         A || (A = !0, console.error(
           "%s: `key` is not a prop. Trying to access it will result in `undefined` being returned. If you need to access the same value within the child component, you should pass it as a different prop. (https://react.dev/link/special-props)",
-          l
+          d
         ));
       }
       w.isReactWarning = !0, Object.defineProperty(e, "key", {
@@ -146,17 +145,17 @@ function be() {
       });
     }
     function E() {
-      var e = n(this.type);
+      var e = r(this.type);
       return j[e] || (j[e] = !0, console.error(
         "Accessing element.ref was removed in React 19. ref is now a regular prop. It will be removed from the JSX Element type in a future release."
       )), e = this.props.ref, e !== void 0 ? e : null;
     }
-    function v(e, l, w, R, Y, N, te, re) {
-      return w = N.ref, e = {
-        $$typeof: _,
+    function g(e, d, w, T, Y, I, te, re) {
+      return w = I.ref, e = {
+        $$typeof: C,
         type: e,
-        key: l,
-        props: N,
+        key: d,
+        props: I,
         _owner: Y
       }, (w !== void 0 ? w : null) !== null ? Object.defineProperty(e, "ref", {
         enumerable: !1,
@@ -183,49 +182,49 @@ function be() {
         value: re
       }), Object.freeze && (Object.freeze(e.props), Object.freeze(e)), e;
     }
-    function d(e, l, w, R, Y, N, te, re) {
-      var F = l.children;
+    function l(e, d, w, T, Y, I, te, re) {
+      var F = d.children;
       if (F !== void 0)
-        if (R)
+        if (T)
           if (y(F)) {
-            for (R = 0; R < F.length; R++)
-              p(F[R]);
+            for (T = 0; T < F.length; T++)
+              p(F[T]);
             Object.freeze && Object.freeze(F);
           } else
             console.error(
               "React.jsx: Static children should always be an array. You are likely explicitly calling React.jsxs or React.jsxDEV. Use the Babel transform instead."
             );
         else p(F);
-      if (k.call(l, "key")) {
-        F = n(e);
-        var B = Object.keys(l).filter(function(ge) {
-          return ge !== "key";
+      if (k.call(d, "key")) {
+        F = r(e);
+        var B = Object.keys(d).filter(function(be) {
+          return be !== "key";
         });
-        R = 0 < B.length ? "{key: someKey, " + B.join(": ..., ") + ": ...}" : "{key: someKey}", t[F + R] || (B = 0 < B.length ? "{" + B.join(": ..., ") + ": ...}" : "{}", console.error(
+        T = 0 < B.length ? "{key: someKey, " + B.join(": ..., ") + ": ...}" : "{key: someKey}", t[F + T] || (B = 0 < B.length ? "{" + B.join(": ..., ") + ": ...}" : "{}", console.error(
           `A props object containing a "key" prop is being spread into JSX:
   let props = %s;
   <%s {...props} />
 React keys must be passed directly to JSX without using spread:
   let props = %s;
   <%s key={someKey} {...props} />`,
-          R,
+          T,
           F,
           B,
           F
-        ), t[F + R] = !0);
+        ), t[F + T] = !0);
       }
-      if (F = null, w !== void 0 && (s(w), F = "" + w), S(l) && (s(l.key), F = "" + l.key), "key" in l) {
+      if (F = null, w !== void 0 && (s(w), F = "" + w), S(d) && (s(d.key), F = "" + d.key), "key" in d) {
         w = {};
-        for (var ne in l)
-          ne !== "key" && (w[ne] = l[ne]);
-      } else w = l;
-      return F && h(
+        for (var ne in d)
+          ne !== "key" && (w[ne] = d[ne]);
+      } else w = d;
+      return F && f(
         w,
         typeof e == "function" ? e.displayName || e.name || "Unknown" : e
-      ), v(
+      ), g(
         e,
         F,
-        N,
+        I,
         Y,
         c(),
         w,
@@ -234,90 +233,112 @@ React keys must be passed directly to JSX without using spread:
       );
     }
     function p(e) {
-      typeof e == "object" && e !== null && e.$$typeof === _ && e._store && (e._store.validated = 1);
+      typeof e == "object" && e !== null && e.$$typeof === C && e._store && (e._store.validated = 1);
     }
-    var T = ve, _ = Symbol.for("react.transitional.element"), x = Symbol.for("react.portal"), O = Symbol.for("react.fragment"), P = Symbol.for("react.strict_mode"), C = Symbol.for("react.profiler"), L = Symbol.for("react.consumer"), U = Symbol.for("react.context"), I = Symbol.for("react.forward_ref"), W = Symbol.for("react.suspense"), X = Symbol.for("react.suspense_list"), m = Symbol.for("react.memo"), u = Symbol.for("react.lazy"), g = Symbol.for("react.activity"), f = Symbol.for("react.client.reference"), b = T.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE, k = Object.prototype.hasOwnProperty, y = Array.isArray, M = console.createTask ? console.createTask : function() {
+    var R = oe, C = Symbol.for("react.transitional.element"), _ = Symbol.for("react.portal"), O = Symbol.for("react.fragment"), P = Symbol.for("react.strict_mode"), x = Symbol.for("react.profiler"), L = Symbol.for("react.consumer"), U = Symbol.for("react.context"), N = Symbol.for("react.forward_ref"), W = Symbol.for("react.suspense"), X = Symbol.for("react.suspense_list"), m = Symbol.for("react.memo"), u = Symbol.for("react.lazy"), v = Symbol.for("react.activity"), h = Symbol.for("react.client.reference"), b = R.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE, k = Object.prototype.hasOwnProperty, y = Array.isArray, M = console.createTask ? console.createTask : function() {
       return null;
     };
-    T = {
+    R = {
       "react-stack-bottom-frame": function(e) {
         return e();
       }
     };
-    var A, j = {}, D = T["react-stack-bottom-frame"].bind(
-      T,
+    var A, j = {}, D = R["react-stack-bottom-frame"].bind(
+      R,
       i
-    )(), r = M(o(i)), t = {};
-    V.Fragment = O, V.jsx = function(e, l, w, R, Y) {
-      var N = 1e4 > b.recentlyCreatedOwnerStacks++;
-      return d(
+    )(), n = M(a(i)), t = {};
+    V.Fragment = O, V.jsx = function(e, d, w, T, Y) {
+      var I = 1e4 > b.recentlyCreatedOwnerStacks++;
+      return l(
         e,
-        l,
+        d,
         w,
         !1,
-        R,
+        T,
         Y,
-        N ? Error("react-stack-top-frame") : D,
-        N ? M(o(e)) : r
+        I ? Error("react-stack-top-frame") : D,
+        I ? M(a(e)) : n
       );
-    }, V.jsxs = function(e, l, w, R, Y) {
-      var N = 1e4 > b.recentlyCreatedOwnerStacks++;
-      return d(
+    }, V.jsxs = function(e, d, w, T, Y) {
+      var I = 1e4 > b.recentlyCreatedOwnerStacks++;
+      return l(
         e,
-        l,
+        d,
         w,
         !0,
-        R,
+        T,
         Y,
-        N ? Error("react-stack-top-frame") : D,
-        N ? M(o(e)) : r
+        I ? Error("react-stack-top-frame") : D,
+        I ? M(a(e)) : n
       );
     };
   }()), V;
 }
-var ce;
+var ie;
 function ke() {
-  return ce || (ce = 1, process.env.NODE_ENV === "production" ? G.exports = ye() : G.exports = be()), G.exports;
+  return ie || (ie = 1, process.env.NODE_ENV === "production" ? G.exports = Ee() : G.exports = Re()), G.exports;
 }
 var K = ke();
-const Ee = Q((n) => ({
+const ue = (r) => {
+  let o;
+  const s = /* @__PURE__ */ new Set(), a = (g, l) => {
+    const p = typeof g == "function" ? g(o) : g;
+    if (!Object.is(p, o)) {
+      const R = o;
+      o = l ?? (typeof p != "object" || p === null) ? p : Object.assign({}, o, p), s.forEach((C) => C(o, R));
+    }
+  }, c = () => o, f = { setState: a, getState: c, getInitialState: () => E, subscribe: (g) => (s.add(g), () => s.delete(g)) }, E = o = r(a, c, f);
+  return f;
+}, me = (r) => r ? ue(r) : ue, Te = (r) => r;
+function Se(r, o = Te) {
+  const s = oe.useSyncExternalStore(
+    r.subscribe,
+    () => o(r.getState()),
+    () => o(r.getInitialState())
+  );
+  return oe.useDebugValue(s), s;
+}
+const le = (r) => {
+  const o = me(r), s = (a) => Se(o, a);
+  return Object.assign(s, o), s;
+}, Q = (r) => r ? le(r) : le, Me = Q((r) => ({
   canvases: {},
-  addCanvas: (a, s) => n((o) => o.canvases[s] ? o : {
+  addCanvas: (o, s) => r((a) => a.canvases[s] ? a : {
     canvases: {
-      ...o.canvases,
-      [s]: a
+      ...a.canvases,
+      [s]: o
     }
   }),
-  updateCanvas: (a, s) => n((o) => ({
+  updateCanvas: (o, s) => r((a) => ({
     canvases: {
-      ...o.canvases,
-      [s]: a
+      ...a.canvases,
+      [s]: o
     }
   }))
-})), de = (n) => {
-  const { canvases: a, updateCanvas: s, addCanvas: o } = Ee(), c = oe(() => a[n], [a]);
-  return { canvas: c, setZoom: (d) => {
-    c && s({ ...c, zoom: d }, n);
-  }, setRotation: (d) => {
-    c && s({ ...c, rotation: d }, n);
-  }, setBrightness: (d) => {
-    c && s({ ...c, brightness: d }, n);
-  }, setContrast: (d) => {
-    c && s({ ...c, contrast: d }, n);
-  }, initCanvas: (d) => {
-    o(d, n);
+})), ge = (r) => {
+  const { canvases: o, updateCanvas: s, addCanvas: a } = Me(), c = se(() => o[r], [o]);
+  return { canvas: c, setZoom: (l) => {
+    c && s({ ...c, zoom: l }, r);
+  }, setRotation: (l) => {
+    c && s({ ...c, rotation: l }, r);
+  }, setBrightness: (l) => {
+    c && s({ ...c, brightness: l }, r);
+  }, setContrast: (l) => {
+    c && s({ ...c, contrast: l }, r);
+  }, initCanvas: (l) => {
+    a(l, r);
   } };
-}, fe = 10, he = 500, Re = 0.1, Te = 0.3, Me = 10;
-var ie = (n, a, s) => (c, i) => ({
+}, ve = 10, pe = 500, xe = 0.1, Ce = 0.3, _e = 10;
+var de = (r, o, s) => (c, i) => ({
   pastStates: s?.pastStates || [],
   futureStates: s?.futureStates || [],
   undo: (S = 1) => {
     if (i().pastStates.length) {
-      const h = s?.partialize?.(a()) || a(), E = i().pastStates.splice(-S, S), v = E.shift();
-      n(v), c({
+      const f = s?.partialize?.(o()) || o(), E = i().pastStates.splice(-S, S), g = E.shift();
+      r(g), c({
         pastStates: i().pastStates,
         futureStates: i().futureStates.concat(
-          s?.diff?.(h, v) || h,
+          s?.diff?.(f, g) || f,
           E.reverse()
         )
       });
@@ -325,10 +346,10 @@ var ie = (n, a, s) => (c, i) => ({
   },
   redo: (S = 1) => {
     if (i().futureStates.length) {
-      const h = s?.partialize?.(a()) || a(), E = i().futureStates.splice(-S, S), v = E.shift();
-      n(v), c({
+      const f = s?.partialize?.(o()) || o(), E = i().futureStates.splice(-S, S), g = E.shift();
+      r(g), c({
         pastStates: i().pastStates.concat(
-          s?.diff?.(h, v) || h,
+          s?.diff?.(f, g) || f,
           E.reverse()
         ),
         futureStates: i().futureStates
@@ -342,87 +363,87 @@ var ie = (n, a, s) => (c, i) => ({
   setOnSave: (S) => c({ _onSave: S }),
   // Internal properties
   _onSave: s?.onSave,
-  _handleSet: (S, h, E, v) => {
+  _handleSet: (S, f, E, g) => {
     s?.limit && i().pastStates.length >= s?.limit && i().pastStates.shift(), i()._onSave?.(S, E), c({
-      pastStates: i().pastStates.concat(v || S),
+      pastStates: i().pastStates.concat(g || S),
       futureStates: []
     });
   }
-}), Ce = (n, a) => (o, c, i) => {
-  i.temporal = pe(
-    a?.wrapTemporal?.(ie(o, c, a)) || ie(o, c, a)
+}), Ae = (r, o) => (a, c, i) => {
+  i.temporal = me(
+    o?.wrapTemporal?.(de(a, c, o)) || de(a, c, o)
   );
-  const S = a?.handleSet?.(
+  const S = o?.handleSet?.(
     i.temporal.getState()._handleSet
-  ) || i.temporal.getState()._handleSet, h = (v) => {
+  ) || i.temporal.getState()._handleSet, f = (g) => {
     if (!i.temporal.getState().isTracking) return;
-    const d = a?.partialize?.(c()) || c(), p = a?.diff?.(v, d);
+    const l = o?.partialize?.(c()) || c(), p = o?.diff?.(g, l);
     // If the user has provided a diff function but nothing has been changed, deltaState will be null
     p === null || // If the user has provided an equality function, use it
-    a?.equality?.(v, d) || S(
-      v,
+    o?.equality?.(g, l) || S(
+      g,
       void 0,
-      d,
+      l,
       p
     );
   }, E = i.setState;
-  return i.setState = (...v) => {
-    const d = a?.partialize?.(c()) || c();
-    E(...v), h(d);
-  }, n(
+  return i.setState = (...g) => {
+    const l = o?.partialize?.(c()) || c();
+    E(...g), f(l);
+  }, r(
     // Modify the set function to call the userlandSet function
-    (...v) => {
-      const d = a?.partialize?.(c()) || c();
-      o(...v), h(d);
+    (...g) => {
+      const l = o?.partialize?.(c()) || c();
+      a(...g), f(l);
     },
     c,
     i
   );
 };
 const H = Q()(
-  Ce(
-    (n) => ({
+  Ae(
+    (r) => ({
       stickers: void 0,
       selectedSticker: void 0,
-      addSticker: (a, s) => n((o) => {
-        const c = o.stickers?.[s]?.stickers || [];
+      addSticker: (o, s) => r((a) => {
+        const c = a.stickers?.[s]?.stickers || [];
         return {
           stickers: {
-            ...o.stickers,
+            ...a.stickers,
             [s]: {
-              stickers: [...c, a]
+              stickers: [...c, o]
             }
           }
         };
       }),
-      updateSticker: (a, s) => n((o) => {
-        const i = (o.stickers?.[s]?.stickers || []).map(
-          (S) => S.id === a.id ? a : S
+      updateSticker: (o, s) => r((a) => {
+        const i = (a.stickers?.[s]?.stickers || []).map(
+          (S) => S.id === o.id ? o : S
         );
         return {
           stickers: {
-            ...o.stickers,
+            ...a.stickers,
             [s]: {
               stickers: i
             }
           }
         };
       }),
-      updateAll: (a, s) => n((o) => ({
+      updateAll: (o, s) => r((a) => ({
         stickers: {
-          ...o.stickers,
+          ...a.stickers,
           [s]: {
-            stickers: a
+            stickers: o
           }
         }
       })),
-      removeSticker: (a, s) => n((o) => {
-        const i = (o.stickers?.[s]?.stickers || []).filter(
-          (h) => h.id !== a
-        ), S = { ...o.selectedSticker };
-        return S?.[s] === a && (S[s] = void 0), {
+      removeSticker: (o, s) => r((a) => {
+        const i = (a.stickers?.[s]?.stickers || []).filter(
+          (f) => f.id !== o
+        ), S = { ...a.selectedSticker };
+        return S?.[s] === o && (S[s] = void 0), {
           stickers: {
-            ...o.stickers,
+            ...a.stickers,
             [s]: {
               stickers: i
             }
@@ -430,89 +451,89 @@ const H = Q()(
           selectedSticker: S
         };
       }),
-      setSelectedSticker: (a, s) => n((o) => ({
+      setSelectedSticker: (o, s) => r((a) => ({
         selectedSticker: {
-          ...o.selectedSticker,
-          [a]: s
+          ...a.selectedSticker,
+          [o]: s
         }
       }))
     }),
     {
       // Track only stickers — selection changes don't pollute undo history
-      partialize: (n) => ({ stickers: n.stickers }),
+      partialize: (r) => ({ stickers: r.stickers }),
       limit: 50
     }
   )
-), ue = (n) => we(H.temporal, n);
+), fe = (r) => Se(H.temporal, r);
 let J = null;
-const ee = (n) => {
+const ee = (r) => {
   const {
-    stickers: a,
+    stickers: o,
     selectedSticker: s,
-    addSticker: o,
+    addSticker: a,
     removeSticker: c,
     setSelectedSticker: i,
     updateSticker: S,
-    updateAll: h
-  } = H(), E = ue((u) => u.pastStates.length > 0), v = ue((u) => u.futureStates.length > 0), d = () => H.temporal.getState().undo(), p = () => H.temporal.getState().redo(), T = () => H.temporal.getState().pause(), _ = () => H.temporal.getState().resume(), x = z(void 0), O = oe(() => a?.[n]?.stickers, [a]), P = oe(
-    () => s?.[n],
+    updateAll: f
+  } = H(), E = fe((u) => u.pastStates.length > 0), g = fe((u) => u.futureStates.length > 0), l = () => H.temporal.getState().undo(), p = () => H.temporal.getState().redo(), R = () => H.temporal.getState().pause(), C = () => H.temporal.getState().resume(), _ = z(void 0), O = se(() => o?.[r]?.stickers, [o]), P = se(
+    () => s?.[r],
     [s]
   );
-  x.current = P;
-  function C(u) {
+  _.current = P;
+  function x(u) {
     return `data:image/svg+xml;base64,${btoa(unescape(encodeURIComponent(u)))}`;
   }
   return {
     stickers: O,
     selectedSticker: P,
-    selectedStickerRef: x,
+    selectedStickerRef: _,
     addSticker: async (u) => {
-      let g = "", f = 100, b = 100;
+      let v = "", h = 100, b = 100;
       if (typeof u == "string")
-        if (g = u, g.startsWith("data:image/svg+xml"))
+        if (v = u, v.startsWith("data:image/svg+xml"))
           try {
-            const y = atob(g.split(",")[1]), A = new DOMParser().parseFromString(y, "image/svg+xml").querySelector("svg"), j = A?.getAttribute("width"), D = A?.getAttribute("height"), r = A?.getAttribute("viewBox");
+            const y = atob(v.split(",")[1]), A = new DOMParser().parseFromString(y, "image/svg+xml").querySelector("svg"), j = A?.getAttribute("width"), D = A?.getAttribute("height"), n = A?.getAttribute("viewBox");
             if (j && D)
-              f = parseFloat(j), b = parseFloat(D);
-            else if (r) {
-              const [, , t, e] = r.split(" ").map(Number);
-              f = t, b = e;
+              h = parseFloat(j), b = parseFloat(D);
+            else if (n) {
+              const [, , t, e] = n.split(" ").map(Number);
+              h = t, b = e;
             }
           } catch (y) {
             console.error("[useStickers] Failed to parse base64 SVG:", y);
           }
         else if (u.includes("<svg"))
           try {
-            g = C(u);
+            v = x(u);
             const M = new DOMParser().parseFromString(u, "image/svg+xml").querySelector("svg"), A = M?.getAttribute("width"), j = M?.getAttribute("height"), D = M?.getAttribute("viewBox");
             if (A && j)
-              f = parseFloat(A), b = parseFloat(j);
+              h = parseFloat(A), b = parseFloat(j);
             else if (D) {
-              const [, , r, t] = D.split(" ").map(Number);
-              f = r, b = t;
+              const [, , n, t] = D.split(" ").map(Number);
+              h = n, b = t;
             }
           } catch (y) {
             console.error("[useStickers] Failed to parse SVG string:", y);
           }
         else {
-          const y = await _e(g);
-          f = y.width, b = y.height;
+          const y = await Oe(v);
+          h = y.width, b = y.height;
         }
       const k = {
         id: (/* @__PURE__ */ new Date()).toISOString(),
         type: "sticker",
-        src: g,
+        src: v,
         x: Math.random() * 200,
         y: Math.random() * 200,
-        width: f,
+        width: h,
         height: b
       };
-      o(k, n);
+      a(k, r);
     },
     addMentionSticker: (u) => {
       if (!u.trim()) return;
-      const g = `@${u.trim()}`, f = 20, b = f + 18, k = g.length * f * 0.58 + 28;
-      o(
+      const v = `@${u.trim()}`, h = 20, b = h + 18, k = v.length * h * 0.58 + 28;
+      a(
         {
           id: (/* @__PURE__ */ new Date()).toISOString(),
           type: "mention",
@@ -522,13 +543,13 @@ const ee = (n) => {
           width: k,
           height: b
         },
-        n
+        r
       );
     },
     addLocationSticker: (u) => {
       if (!u.trim()) return;
-      const g = 18, f = g + 18, b = f * 0.18, k = f / 2, y = u.trim().length * g * 0.55 + k * 2 + b * 4 + 8;
-      o(
+      const v = 18, h = v + 18, b = h * 0.18, k = h / 2, y = u.trim().length * v * 0.55 + k * 2 + b * 4 + 8;
+      a(
         {
           id: (/* @__PURE__ */ new Date()).toISOString(),
           type: "location",
@@ -536,74 +557,74 @@ const ee = (n) => {
           x: Math.random() * 200,
           y: Math.random() * 200,
           width: y,
-          height: f
+          height: h
         },
-        n
+        r
       );
     },
-    removeSticker: (u) => c(u, n),
-    setSelectedSticker: (u) => i(n, u),
-    updateSticker: (u) => S(u, n),
-    updateAllStickers: (u) => h(u, n),
-    undo: d,
+    removeSticker: (u) => c(u, r),
+    setSelectedSticker: (u) => i(r, u),
+    updateSticker: (u) => S(u, r),
+    updateAllStickers: (u) => f(u, r),
+    undo: l,
     redo: p,
     canUndo: E,
-    canRedo: v,
-    pauseHistory: T,
-    resumeHistory: _,
+    canRedo: g,
+    pauseHistory: R,
+    resumeHistory: C,
     copySelectedSticker: () => {
-      const u = x.current;
+      const u = _.current;
       if (!u) return;
-      const g = O?.find((f) => f.id === u);
-      g && (J = g);
+      const v = O?.find((h) => h.id === u);
+      v && (J = v);
     },
     pasteSticker: () => {
-      J && o(
+      J && a(
         {
           ...J,
           id: (/* @__PURE__ */ new Date()).toISOString(),
           x: J.x + 15,
           y: J.y + 15
         },
-        n
+        r
       );
     },
     duplicateSelectedSticker: () => {
-      const u = x.current;
+      const u = _.current;
       if (!u) return;
-      const g = O?.find((f) => f.id === u);
-      g && o(
-        { ...g, id: (/* @__PURE__ */ new Date()).toISOString(), x: g.x + 15, y: g.y + 15 },
-        n
+      const v = O?.find((h) => h.id === u);
+      v && a(
+        { ...v, id: (/* @__PURE__ */ new Date()).toISOString(), x: v.x + 15, y: v.y + 15 },
+        r
       );
     }
   };
 };
-function _e(n) {
-  return new Promise((a, s) => {
-    const o = new Image();
-    o.onload = () => a({ width: o.width, height: o.height }), o.onerror = s, o.src = n;
+function Oe(r) {
+  return new Promise((o, s) => {
+    const a = new Image();
+    a.onload = () => o({ width: a.width, height: a.height }), a.onerror = s, a.src = r;
   });
 }
-function xe(n, a, s) {
+function Pe(r, o, s) {
   const {
-    stickers: o,
+    stickers: a,
     selectedSticker: c,
     setSelectedSticker: i,
     updateAllStickers: S,
-    pauseHistory: h,
+    pauseHistory: f,
     resumeHistory: E
-  } = ee(a), [v, d] = q(null), [p, T] = q(null), [_, x] = q(null), O = z({ x: 0, y: 0 }), P = z({ x: 0, y: 0 }), C = z({
+  } = ee(o), [g, l] = q(null), [p, R] = q(null), [C, _] = q(null), O = z({ x: 0, y: 0 }), P = z({ x: 0, y: 0 }), x = z({
     width: 0,
     height: 0
   }), L = (m, u) => {
-    if (o)
-      for (let g = o.length - 1; g >= 0; g--) {
-        const f = o[g];
-        if (m >= f.x && m <= f.x + f.width && u >= f.y && u <= f.y + f.height)
-          return f;
+    if (a)
+      for (let v = a.length - 1; v >= 0; v--) {
+        const h = a[v];
+        if (m >= h.x && m <= h.x + h.width && u >= h.y && u <= h.y + h.height)
+          return h;
       }
-  }, U = (m, u, g, f = 10) => {
+  }, U = (m, u, v, h = 10) => {
     const b = {
       tl: { x: m.x, y: m.y },
       tr: { x: m.x + m.width, y: m.y },
@@ -613,48 +634,48 @@ function xe(n, a, s) {
     for (const k in b) {
       if (!k) continue;
       const y = b[k].x, M = b[k].y;
-      if (Math.abs(u - y) <= f && Math.abs(g - M) <= f)
+      if (Math.abs(u - y) <= h && Math.abs(v - M) <= h)
         return k;
     }
     return null;
-  }, I = (m, u) => {
-    h();
-    const g = o?.find((b) => b.id === c);
-    if (g) {
-      const b = U(g, m, u);
+  }, N = (m, u) => {
+    f();
+    const v = a?.find((b) => b.id === c);
+    if (v) {
+      const b = U(v, m, u);
       if (b) {
-        T(g.id), x(b), P.current = { x: m, y: u }, C.current = {
-          width: g.width,
-          height: g.height
+        R(v.id), _(b), P.current = { x: m, y: u }, x.current = {
+          width: v.width,
+          height: v.height
         }, s?.(!0);
         return;
       }
     }
-    const f = L(m, u);
-    f ? (d(f.id), O.current = { x: m - f.x, y: u - f.y }, s?.(!0), i?.(f.id)) : i?.(void 0);
+    const h = L(m, u);
+    h ? (l(h.id), O.current = { x: m - h.x, y: u - h.y }, s?.(!0), i?.(h.id)) : i?.(void 0);
   }, W = (m, u) => {
-    if (p && _) {
-      const f = m - P.current.x, b = u - P.current.y, k = o?.map((y) => {
+    if (p && C) {
+      const h = m - P.current.x, b = u - P.current.y, k = a?.map((y) => {
         if (y.id !== p) return y;
-        let M = C.current.width, A = C.current.height;
-        switch (_) {
+        let M = x.current.width, A = x.current.height;
+        switch (C) {
           case "tl": {
-            const j = C.current.width - f, D = C.current.height - b;
+            const j = x.current.width - h, D = x.current.height - b;
             M = Math.max(j, 10), A = Math.max(D, 10);
             break;
           }
           case "tr": {
-            const j = C.current.width + f, D = C.current.height - b;
+            const j = x.current.width + h, D = x.current.height - b;
             M = Math.max(j, 10), A = Math.max(D, 10);
             break;
           }
           case "bl": {
-            const j = C.current.width - f, D = C.current.height + b;
+            const j = x.current.width - h, D = x.current.height + b;
             M = Math.max(j, 10), A = Math.max(D, 10);
             break;
           }
           case "br": {
-            const j = C.current.width + f, D = C.current.height + b;
+            const j = x.current.width + h, D = x.current.height + b;
             M = Math.max(j, 10), A = Math.max(D, 10);
             break;
           }
@@ -668,23 +689,23 @@ function xe(n, a, s) {
       k && S?.(k);
       return;
     }
-    if (!v) return;
-    const g = o?.map(
-      (f) => f.id === v ? {
-        ...f,
+    if (!g) return;
+    const v = a?.map(
+      (h) => h.id === g ? {
+        ...h,
         x: m - O.current.x,
         y: u - O.current.y
-      } : f
+      } : h
     );
-    g && S?.(g);
+    v && S?.(v);
   }, X = () => {
-    E(), d(null), T(null), x(null), s?.(!1);
+    E(), l(null), R(null), _(null), s?.(!1);
   };
   $(() => {
-    const m = n.current;
+    const m = r.current;
     if (!m) return;
-    const u = (g) => {
-      const f = m.getBoundingClientRect(), b = g.clientX - f.left, k = g.clientY - f.top, y = o?.find((M) => M.id === c);
+    const u = (v) => {
+      const h = m.getBoundingClientRect(), b = v.clientX - h.left, k = v.clientY - h.top, y = a?.find((M) => M.id === c);
       if (y) {
         const M = U(y, b, k);
         if (M) {
@@ -698,134 +719,134 @@ function xe(n, a, s) {
           return;
         }
       }
-      m.style.cursor = v || p ? "grabbing" : "default";
+      m.style.cursor = g || p ? "grabbing" : "default";
     };
     return m.addEventListener("mousemove", u), () => {
       m.removeEventListener("mousemove", u), m.style.cursor = "default";
     };
-  }, [n, o, i, v, p]), $(() => {
-    const m = n.current;
+  }, [r, a, i, g, p]), $(() => {
+    const m = r.current;
     if (!m) return;
     const u = (k) => {
       const y = m.getBoundingClientRect();
-      I(k.clientX - y.left, k.clientY - y.top);
-    }, g = (k) => {
-      if (!v && !p) return;
+      N(k.clientX - y.left, k.clientY - y.top);
+    }, v = (k) => {
+      if (!g && !p) return;
       const y = m.getBoundingClientRect();
       W(k.clientX - y.left, k.clientY - y.top);
-    }, f = (k) => {
+    }, h = (k) => {
       if (k.touches.length !== 1) return;
       const y = m.getBoundingClientRect(), M = k.touches[0];
-      I(M.clientX - y.left, M.clientY - y.top);
+      N(M.clientX - y.left, M.clientY - y.top);
     }, b = (k) => {
-      if (k.touches.length !== 1 || !v && !p) return;
+      if (k.touches.length !== 1 || !g && !p) return;
       const y = m.getBoundingClientRect(), M = k.touches[0];
       W(M.clientX - y.left, M.clientY - y.top);
     };
-    return m.addEventListener("mousedown", u), window.addEventListener("mousemove", g), window.addEventListener("mouseup", X), m.addEventListener("touchstart", f, { passive: !1 }), window.addEventListener("touchmove", b, { passive: !1 }), window.addEventListener("touchend", X), () => {
-      m.removeEventListener("mousedown", u), window.removeEventListener("mousemove", g), window.removeEventListener("mouseup", X), m.removeEventListener("touchstart", f), window.removeEventListener("touchmove", b), window.removeEventListener("touchend", X);
+    return m.addEventListener("mousedown", u), window.addEventListener("mousemove", v), window.addEventListener("mouseup", X), m.addEventListener("touchstart", h, { passive: !1 }), window.addEventListener("touchmove", b, { passive: !1 }), window.addEventListener("touchend", X), () => {
+      m.removeEventListener("mousedown", u), window.removeEventListener("mousemove", v), window.removeEventListener("mouseup", X), m.removeEventListener("touchstart", h), window.removeEventListener("touchmove", b), window.removeEventListener("touchend", X);
     };
   }, [
-    n,
-    v,
+    r,
+    g,
     p,
-    _,
-    o,
+    C,
+    a,
     S,
     s,
     i
   ]);
 }
-const me = Q((n) => ({
+const we = Q((r) => ({
   canvasRefs: {},
-  setCanvasRef: (a, s) => n((o) => ({
-    canvasRefs: { ...o.canvasRefs, [a]: s }
+  setCanvasRef: (o, s) => r((a) => ({
+    canvasRefs: { ...a.canvasRefs, [o]: s }
   }))
-})), Se = Q(() => {
-  const n = { current: null };
+})), ye = Q(() => {
+  const r = { current: null };
   return {
-    finalImageRef: n,
-    setFinalImage: (a) => {
-      n.current = a;
+    finalImageRef: r,
+    setFinalImage: (o) => {
+      r.current = o;
     },
-    getFinalImage: () => n.current
+    getFinalImage: () => r.current
   };
 });
-function Ae({ canvasId: n }) {
-  const { canvasRefs: a } = me(), s = z(null), [o, c] = q({ x: 0, y: 0 }), [i, S] = q(!1), h = z(null), E = z(null), v = z(null), { stickers: d, selectedSticker: p } = ee(n), {
-    canvas: { image: T, cropHeight: _, cropWidth: x, rotation: O, zoom: P, brightness: C, contrast: L },
+function De({ canvasId: r }) {
+  const { canvasRefs: o } = we(), s = z(null), [a, c] = q({ x: 0, y: 0 }), [i, S] = q(!1), f = z(null), E = z(null), g = z(null), { stickers: l, selectedSticker: p } = ee(r), {
+    canvas: { image: R, cropHeight: C, cropWidth: _, rotation: O, zoom: P, brightness: x, contrast: L },
     setZoom: U
-  } = de(n), I = le(() => {
+  } = ge(r), N = he(() => {
     E.current !== null && cancelAnimationFrame(E.current), E.current = requestAnimationFrame(() => {
-      E.current = null, v.current?.();
+      E.current = null, g.current?.();
     });
-  }, []), W = (r, t, e) => Math.min(Math.max(r, t), e), X = (r) => {
-    if (!h.current || i) return;
-    const t = P / 100, e = h.current.width * t, l = h.current.height * t, w = Math.max(0, (e - x) / 2), R = Math.max(0, (l - _) / 2), Y = W(r.x, -w, w), N = W(r.y, -R, R);
-    c({ x: Y, y: N });
+  }, []), W = (n, t, e) => Math.min(Math.max(n, t), e), X = (n) => {
+    if (!f.current || i) return;
+    const t = P / 100, e = f.current.width * t, d = f.current.height * t, w = Math.max(0, (e - _) / 2), T = Math.max(0, (d - C) / 2), Y = W(n.x, -w, w), I = W(n.y, -T, T);
+    c({ x: Y, y: I });
   };
   $(() => {
-    if (!T) return;
-    const r = new Image();
-    return r.onload = () => {
-      h.current = r, I();
-    }, r.onerror = () => {
-      console.error("[useCanvasCrop] Failed to load image:", T.slice(0, 80));
-    }, r.src = T, () => {
-      r.onload = null, r.onerror = null;
+    if (!R) return;
+    const n = new Image();
+    return n.onload = () => {
+      f.current = n, N();
+    }, n.onerror = () => {
+      console.error("[useCanvasCrop] Failed to load image:", R.slice(0, 80));
+    }, n.src = R, () => {
+      n.onload = null, n.onerror = null;
     };
-  }, [T]), $(() => (I(), () => {
+  }, [R]), $(() => (N(), () => {
     E.current !== null && (cancelAnimationFrame(E.current), E.current = null);
-  }), [P, o, O, d, p, C, L]);
-  const m = (r, t, e) => {
-    const l = Me;
-    r.save(), r.fillStyle = "#007bff", r.strokeStyle = "#fff", r.lineWidth = 2, r.beginPath(), r.rect(t - l / 2, e - l / 2, l, l), r.fill(), r.stroke(), r.restore();
-  }, u = z({}), g = () => {
-    const r = s.current ?? a[n].current, t = r?.getContext("2d");
-    if (!r || !t || !h.current) return;
-    r.width = x, r.height = _, t.clearRect(0, 0, x, _), t.save();
+  }), [P, a, O, l, p, x, L]);
+  const m = (n, t, e) => {
+    const d = _e;
+    n.save(), n.fillStyle = "#007bff", n.strokeStyle = "#fff", n.lineWidth = 2, n.beginPath(), n.rect(t - d / 2, e - d / 2, d, d), n.fill(), n.stroke(), n.restore();
+  }, u = z({}), v = () => {
+    const n = s.current ?? o[r].current, t = n?.getContext("2d");
+    if (!n || !t || !f.current) return;
+    n.width = _, n.height = C, t.clearRect(0, 0, _, C), t.save();
     const e = P / 100;
-    return t.translate(o.x + x / 2, o.y + _ / 2), t.rotate(O * Math.PI / 180), t.scale(e, e), t.filter = `brightness(${(C ?? 100) / 100}) contrast(${(L ?? 100) / 100})`, t.drawImage(
-      h.current,
-      -h.current.width / 2,
-      -h.current.height / 2
+    return t.translate(a.x + _ / 2, a.y + C / 2), t.rotate(O * Math.PI / 180), t.scale(e, e), t.filter = `brightness(${(x ?? 100) / 100}) contrast(${(L ?? 100) / 100})`, t.drawImage(
+      f.current,
+      -f.current.width / 2,
+      -f.current.height / 2
     ), t.filter = "none", t.restore(), t;
-  }, f = (r, t) => {
+  }, h = (n, t) => {
     let e = u.current[t.src];
     if (!e) {
-      e = new Image(), e.src = t.src, u.current[t.src] = e, e.onload = () => I();
+      e = new Image(), e.src = t.src, u.current[t.src] = e, e.onload = () => N();
       return;
     }
-    e.complete && r.drawImage(
+    e.complete && n.drawImage(
       e,
       t.x,
       t.y,
       t.width,
       t.height
     );
-  }, b = (r, t) => {
-    r.font = `${t.height}px sans-serif`, r.textAlign = "left", r.textBaseline = "top", r.fillText(t.src, t.x, t.y);
-  }, k = (r, t, e, l, w, R) => {
-    r.beginPath(), r.moveTo(t + R, e), r.lineTo(t + l - R, e), r.quadraticCurveTo(t + l, e, t + l, e + R), r.lineTo(t + l, e + w - R), r.quadraticCurveTo(t + l, e + w, t + l - R, e + w), r.lineTo(t + R, e + w), r.quadraticCurveTo(t, e + w, t, e + w - R), r.lineTo(t, e + R), r.quadraticCurveTo(t, e, t + R, e), r.closePath();
-  }, y = (r, t) => {
-    const e = `@${t.src}`, l = Math.round(t.height * 0.52), w = t.height / 2;
-    r.save(), r.fillStyle = "rgba(0,0,0,0.65)", k(r, t.x, t.y, t.width, t.height, w), r.fill(), r.fillStyle = "#ffffff", r.font = `bold ${l}px sans-serif`, r.textAlign = "center", r.textBaseline = "middle", r.fillText(e, t.x + t.width / 2, t.y + t.height / 2), r.restore();
-  }, M = (r, t) => {
-    const e = Math.round(t.height * 0.48), l = t.height / 2, w = t.height * 0.18, R = t.x + l, Y = t.y + t.height / 2;
-    r.save(), r.fillStyle = "rgba(0,0,0,0.65)", k(r, t.x, t.y, t.width, t.height, l), r.fill(), r.fillStyle = "#ff4444", r.beginPath(), r.arc(R, Y, w, 0, Math.PI * 2), r.fill(), r.fillStyle = "#ffffff", r.font = `bold ${e}px sans-serif`, r.textAlign = "left", r.textBaseline = "middle", r.fillText(t.src, R + w * 2, Y), r.restore();
-  }, A = (r, t) => {
-    r.strokeStyle = "#007bff", r.lineWidth = 2, r.strokeRect(t.x, t.y, t.width, t.height), m(r, t.x, t.y), m(r, t.x + t.width, t.y), m(r, t.x, t.y + t.height), m(
-      r,
+  }, b = (n, t) => {
+    n.font = `${t.height}px sans-serif`, n.textAlign = "left", n.textBaseline = "top", n.fillText(t.src, t.x, t.y);
+  }, k = (n, t, e, d, w, T) => {
+    n.beginPath(), n.moveTo(t + T, e), n.lineTo(t + d - T, e), n.quadraticCurveTo(t + d, e, t + d, e + T), n.lineTo(t + d, e + w - T), n.quadraticCurveTo(t + d, e + w, t + d - T, e + w), n.lineTo(t + T, e + w), n.quadraticCurveTo(t, e + w, t, e + w - T), n.lineTo(t, e + T), n.quadraticCurveTo(t, e, t + T, e), n.closePath();
+  }, y = (n, t) => {
+    const e = `@${t.src}`, d = Math.round(t.height * 0.52), w = t.height / 2;
+    n.save(), n.fillStyle = "rgba(0,0,0,0.65)", k(n, t.x, t.y, t.width, t.height, w), n.fill(), n.fillStyle = "#ffffff", n.font = `bold ${d}px sans-serif`, n.textAlign = "center", n.textBaseline = "middle", n.fillText(e, t.x + t.width / 2, t.y + t.height / 2), n.restore();
+  }, M = (n, t) => {
+    const e = Math.round(t.height * 0.48), d = t.height / 2, w = t.height * 0.18, T = t.x + d, Y = t.y + t.height / 2;
+    n.save(), n.fillStyle = "rgba(0,0,0,0.65)", k(n, t.x, t.y, t.width, t.height, d), n.fill(), n.fillStyle = "#ff4444", n.beginPath(), n.arc(T, Y, w, 0, Math.PI * 2), n.fill(), n.fillStyle = "#ffffff", n.font = `bold ${e}px sans-serif`, n.textAlign = "left", n.textBaseline = "middle", n.fillText(t.src, T + w * 2, Y), n.restore();
+  }, A = (n, t) => {
+    n.strokeStyle = "#007bff", n.lineWidth = 2, n.strokeRect(t.x, t.y, t.width, t.height), m(n, t.x, t.y), m(n, t.x + t.width, t.y), m(n, t.x, t.y + t.height), m(
+      n,
       t.x + t.width,
       t.y + t.height
     );
-  }, j = (r) => {
-    const t = r.toDataURL();
-    return Se.getState().setFinalImage({ dataUrl: t, metaData: { stickers: d ?? [] } }), { dataUrl: t, metaData: { stickers: d } };
+  }, j = (n) => {
+    const t = n.toDataURL();
+    return ye.getState().setFinalImage({ dataUrl: t, metaData: { stickers: l ?? [] } }), { dataUrl: t, metaData: { stickers: l } };
   }, D = () => {
-    const r = s ?? a[n], t = g();
-    if (!(!t || !r.current))
-      return d?.forEach((e) => {
+    const n = s ?? o[r], t = v();
+    if (!(!t || !n.current))
+      return l?.forEach((e) => {
         switch (e.type) {
           case "mention":
             y(t, e);
@@ -837,14 +858,14 @@ function Ae({ canvasId: n }) {
             b(t, e);
             break;
           default:
-            f(t, e);
+            h(t, e);
         }
         e.id === p && A(t, e);
-      }), j(r.current);
+      }), j(n.current);
   };
-  return v.current = D, xe(
-    s ?? a[n],
-    n,
+  return g.current = D, Pe(
+    s ?? o[r],
+    r,
     S
   ), {
     canvasRef: s,
@@ -852,23 +873,23 @@ function Ae({ canvasId: n }) {
     setCurrentZoom: U,
     currentZoom: P,
     setPosition: X,
-    position: o,
+    position: a,
     drawCanvas: D
   };
 }
-function Oe(n, a) {
-  const s = z(!1), o = z({ x: 0, y: 0 });
+function je(r, o) {
+  const s = z(!1), a = z({ x: 0, y: 0 });
   return {
-    onMouseDown: (h) => {
-      s.current = !0, o.current = {
-        x: h.clientX - a.x,
-        y: h.clientY - a.y
+    onMouseDown: (f) => {
+      s.current = !0, a.current = {
+        x: f.clientX - o.x,
+        y: f.clientY - o.y
       };
     },
-    onMouseMove: (h) => {
-      s.current && n(
-        h.clientX - o.current.x,
-        h.clientY - o.current.y
+    onMouseMove: (f) => {
+      s.current && r(
+        f.clientX - a.current.x,
+        f.clientY - a.current.y
       );
     },
     onMouseUp: () => {
@@ -876,180 +897,180 @@ function Oe(n, a) {
     }
   };
 }
-function Pe(n, a, s, o, c) {
-  const i = z(!1), S = z({ x: 0, y: 0 }), h = z(null);
+function ze(r, o, s, a, c) {
+  const i = z(!1), S = z({ x: 0, y: 0 }), f = z(null);
   return {
     onTouchStart: (p) => {
       if (p.touches.length === 1) {
-        const T = p.touches[0];
+        const R = p.touches[0];
         i.current = !0, S.current = {
-          x: T.clientX - a.x,
-          y: T.clientY - a.y
+          x: R.clientX - o.x,
+          y: R.clientY - o.y
         };
       } else if (p.touches.length === 2) {
-        const [T, _] = Array.from(p.touches), x = Math.hypot(_.clientX - T.clientX, _.clientY - T.clientY);
-        h.current = x;
+        const [R, C] = Array.from(p.touches), _ = Math.hypot(C.clientX - R.clientX, C.clientY - R.clientY);
+        f.current = _;
       }
     },
     onTouchMove: (p) => {
       if (p.preventDefault(), p.touches.length === 1 && i.current) {
-        const T = p.touches[0];
-        n(
-          T.clientX - S.current.x,
-          T.clientY - S.current.y
+        const R = p.touches[0];
+        r(
+          R.clientX - S.current.x,
+          R.clientY - S.current.y
         );
       } else if (p.touches.length === 2) {
-        const [T, _] = Array.from(p.touches), x = Math.hypot(_.clientX - T.clientX, _.clientY - T.clientY);
-        if (h.current != null) {
-          const P = (x - h.current) * Te;
-          s(c(o + P, fe, he));
+        const [R, C] = Array.from(p.touches), _ = Math.hypot(C.clientX - R.clientX, C.clientY - R.clientY);
+        if (f.current != null) {
+          const P = (_ - f.current) * Ce;
+          s(c(a + P, ve, pe));
         }
-        h.current = x;
+        f.current = _;
       }
     },
     onTouchEnd: () => {
-      i.current = !1, h.current = null;
+      i.current = !1, f.current = null;
     }
   };
 }
-function De(n) {
+function Fe(r) {
   const {
-    selectedStickerRef: a,
+    selectedStickerRef: o,
     removeSticker: s,
-    setSelectedSticker: o,
+    setSelectedSticker: a,
     undo: c,
     redo: i,
     copySelectedSticker: S,
-    pasteSticker: h,
+    pasteSticker: f,
     duplicateSelectedSticker: E
-  } = ee(n);
+  } = ee(r);
   $(() => {
-    const v = (d) => {
-      const p = d.metaKey || d.ctrlKey, T = d.target.tagName;
-      if (!(T === "INPUT" || T === "TEXTAREA")) {
-        if (p && d.key === "z" && !d.shiftKey) {
-          d.preventDefault(), c();
+    const g = (l) => {
+      const p = l.metaKey || l.ctrlKey, R = l.target.tagName;
+      if (!(R === "INPUT" || R === "TEXTAREA")) {
+        if (p && l.key === "z" && !l.shiftKey) {
+          l.preventDefault(), c();
           return;
         }
-        if (p && d.key === "z" && d.shiftKey || p && d.key === "y") {
-          d.preventDefault(), i();
+        if (p && l.key === "z" && l.shiftKey || p && l.key === "y") {
+          l.preventDefault(), i();
           return;
         }
-        if (p && d.key === "c") {
+        if (p && l.key === "c") {
           S();
           return;
         }
-        if (p && d.key === "v") {
-          h();
+        if (p && l.key === "v") {
+          f();
           return;
         }
-        if (p && d.key === "d") {
-          d.preventDefault(), E();
+        if (p && l.key === "d") {
+          l.preventDefault(), E();
           return;
         }
-        if (d.key === "Delete" || d.key === "Backspace") {
-          const _ = a.current;
-          _ && (d.preventDefault(), s(_));
+        if (l.key === "Delete" || l.key === "Backspace") {
+          const C = o.current;
+          C && (l.preventDefault(), s(C));
           return;
         }
-        if (d.key === "Escape") {
-          o(void 0);
+        if (l.key === "Escape") {
+          a(void 0);
           return;
         }
       }
     };
-    return window.addEventListener("keydown", v), () => window.removeEventListener("keydown", v);
+    return window.addEventListener("keydown", g), () => window.removeEventListener("keydown", g);
   }, [
     c,
     i,
     s,
-    o,
+    a,
     S,
-    h,
+    f,
     E,
-    a
+    o
   ]);
 }
-function je({ id: n }) {
+function Le({ id: r }) {
   const {
-    canvasRef: a,
+    canvasRef: o,
     clamp: s,
-    setCurrentZoom: o,
+    setCurrentZoom: a,
     currentZoom: c,
     setPosition: i,
     position: S
-  } = Ae({
-    canvasId: n
-  }), { onMouseDown: h, onMouseMove: E, onMouseUp: v } = Oe(
-    (C, L) => i({ x: C, y: L }),
+  } = De({
+    canvasId: r
+  }), { onMouseDown: f, onMouseMove: E, onMouseUp: g } = je(
+    (x, L) => i({ x, y: L }),
     S
-  ), { onTouchStart: d, onTouchMove: p, onTouchEnd: T } = Pe(
-    (C, L) => i({ x: C, y: L }),
+  ), { onTouchStart: l, onTouchMove: p, onTouchEnd: R } = ze(
+    (x, L) => i({ x, y: L }),
     S,
-    o,
+    a,
     c,
     s
-  ), _ = z(c);
-  _.current = c;
-  const x = z(null), O = z(0), P = le((C) => {
-    C.preventDefault(), O.current += -C.deltaY * Re, x.current === null && (x.current = requestAnimationFrame(() => {
-      x.current = null;
-      const L = _.current + O.current;
-      o(Math.min(Math.max(L, fe), he)), O.current = 0;
+  ), C = z(c);
+  C.current = c;
+  const _ = z(null), O = z(0), P = he((x) => {
+    x.preventDefault(), O.current += -x.deltaY * xe, _.current === null && (_.current = requestAnimationFrame(() => {
+      _.current = null;
+      const L = C.current + O.current;
+      a(Math.min(Math.max(L, ve), pe)), O.current = 0;
     }));
-  }, [o]);
+  }, [a]);
   return $(() => {
-    const C = a.current;
-    if (C)
-      return C.addEventListener("wheel", P, { passive: !1 }), () => {
-        C.removeEventListener("wheel", P), x.current !== null && cancelAnimationFrame(x.current);
+    const x = o.current;
+    if (x)
+      return x.addEventListener("wheel", P, { passive: !1 }), () => {
+        x.removeEventListener("wheel", P), _.current !== null && cancelAnimationFrame(_.current);
       };
-  }, [a, P]), $(() => {
-    me.getState().setCanvasRef(n, a);
-  }, [n]), De(n), /* @__PURE__ */ K.jsx(
+  }, [o, P]), $(() => {
+    we.getState().setCanvasRef(r, o);
+  }, [r]), Fe(r), /* @__PURE__ */ K.jsx(
     "canvas",
     {
-      ref: a,
+      ref: o,
       style: { touchAction: "none", cursor: "grab" },
-      onMouseDown: h,
+      onMouseDown: f,
       onMouseMove: E,
-      onMouseUp: v,
-      onMouseLeave: v,
-      onTouchStart: d,
+      onMouseUp: g,
+      onMouseLeave: g,
+      onTouchStart: l,
       onTouchMove: p,
-      onTouchEnd: T
+      onTouchEnd: R
     }
   );
 }
-function Le({
-  id: n,
-  image: a,
+function Ie({
+  id: r,
+  image: o,
   cropWidth: s,
-  cropHeight: o,
+  cropHeight: a,
   zoom: c,
   rotation: i,
   brightness: S = 100,
-  contrast: h = 100
+  contrast: f = 100
 }) {
-  const { initCanvas: E } = de(n), [v, d] = q(!1);
+  const { initCanvas: E } = ge(r), [g, l] = q(!1);
   return $(() => {
     E({
-      image: a,
+      image: o,
       zoom: c,
-      cropHeight: o,
+      cropHeight: a,
       cropWidth: s,
       rotation: i,
       brightness: S,
-      contrast: h
-    }), d(!0);
-  }, []), /* @__PURE__ */ K.jsx(K.Fragment, { children: v && /* @__PURE__ */ K.jsx(je, { id: n }) });
+      contrast: f
+    }), l(!0);
+  }, []), /* @__PURE__ */ K.jsx(K.Fragment, { children: g && /* @__PURE__ */ K.jsx(Le, { id: r }) });
 }
-const Ye = (n) => {
-  const { setSelectedSticker: a } = ee(n);
-  return { exportFinalImage: async () => (a(void 0), await new Promise((c) => setTimeout(c, 50)), Se.getState().getFinalImage()) };
+const Ne = (r) => {
+  const { setSelectedSticker: o } = ee(r);
+  return { exportFinalImage: async () => (o(void 0), await new Promise((c) => setTimeout(c, 50)), ye.getState().getFinalImage()) };
 };
 export {
-  Le as EnhancedImage,
-  Ye as useImageExporter,
+  Ie as EnhancedImage,
+  Ne as useImageExporter,
   ee as useStickers
 };
